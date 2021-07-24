@@ -8,7 +8,6 @@ use App\Jobs\SendResetPasswordEmailJob;
 use App\Jobs\SendVerificationEmailJob;
 use App\Models\User;
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -100,7 +99,6 @@ class AuthController extends Controller
         SendVerificationEmailJob::dispatch($user, $otp);
         GenerateAddressesJob::dispatch($user);
 
-        // Respond with authentication token
         return $token ?
                     $this->respondWithTokenAndUser(User::query()->where('email', $credentials['email'])->first(), $token) :
                     response()->json(['error' => 'Something went wrong'], 400);
@@ -269,17 +267,17 @@ class AuthController extends Controller
      **/
     public function login(): \Illuminate\Http\JsonResponse
     {
+        // Validate request
         $credentials = request(['email', 'password']);
-
         $validator = Validator::make($credentials, [
             'email' => 'required',
             'password' => 'required'
         ]);
-
         if ($validator->fails()){
             return response()->json($validator->messages(), 422);
         }
 
+        // Generate token if credentials is valid
         if (! $token = auth()->attempt($credentials)) {
             return response()->json(['error' => 'Invalid login credentials'], 401);
         }
@@ -337,7 +335,6 @@ class AuthController extends Controller
     public function logout(): \Illuminate\Http\JsonResponse
     {
         auth()->logout();
-
         return response()->json(['message' => 'Successfully logged out']);
     }
 
@@ -398,16 +395,21 @@ class AuthController extends Controller
      **/
     public function sendResetPasswordLink(): \Illuminate\Http\JsonResponse
     {
+        // Validate request
         $validator = Validator::make(\request()->all(), [
             'email' => 'required',
         ]);
         if ($validator->fails()){
             return response()->json($validator->messages(), 422);
         }
+
+        // Find user
         $user = User::query()->where('email', request('email'))->first();
         if (!$user) {
             return response()->json(['message' => 'We can\'t find a user with that email'], 404);
         }
+
+        // create and store token
         $token = sha1($user['email'].time());
         DB::table('password_resets')->where('email', \request('email'))->delete();
         DB::table('password_resets')->insert([
@@ -415,7 +417,10 @@ class AuthController extends Controller
             'token' => Hash::make($token),
             'created_at' => now()
         ]);
+
+        // Dispatch relevant jobs
         SendResetPasswordEmailJob::dispatch($user, $token);
+
         return response()->json(['message' => 'Password reset link has been sent to your email']);
     }
 
@@ -509,6 +514,7 @@ class AuthController extends Controller
         $user->update([
             'password' => Hash::make(\request('password'))
         ]);
+        // Remove token from table
         DB::table('password_resets')->where('email', \request('email'))->delete();
         return response()->json(['message' => 'Password reset successfully']);
     }

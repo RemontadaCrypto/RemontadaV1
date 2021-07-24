@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Controllers\AddressController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\TransactionController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -29,6 +31,16 @@ Route::group(['middleware' => 'api'], function () {
             Route::post('/refresh', [AuthController::class, 'refresh']);
             Route::post('/user', [AuthController::class, 'user']);
             Route::post('/email/resend', [AuthController::class, 'resendEmailVerificationLink'])->middleware(['throttle:3,1']);
+        });
+    });
+
+    Route::middleware(['auth:api'])->group(function (){
+        Route::group(['prefix' => 'balance'], function () {
+            Route::get('/all', [AddressController::class, 'getAllBalance']);
+            Route::get('/{coin:short_name}', [AddressController::class, 'getBalanceByCoin']);
+        });
+        Route::group(['prefix' => 'transactions'], function () {
+            Route::post('/{coin:short_name}/withdraw', [TransactionController::class, 'withdraw']);
         });
     });
 });

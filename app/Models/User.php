@@ -38,6 +38,26 @@ class User extends Authenticatable implements JWTSubject
         'email_verified_at' => 'datetime',
     ];
 
+    public function addresses(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Address::class);
+    }
+
+    public function transactions(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Transaction::class);
+    }
+
+    public function getAddressByCoin($id)
+    {
+        return $this->addresses()->where('coin_id', $id)->first();
+    }
+
+    public function hasAddressByCoin($id): bool
+    {
+        return !! $this->addresses()->where('coin_id', $id)->first();
+    }
+
     public function getJWTIdentifier()
     {
         return $this->getKey();
