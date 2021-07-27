@@ -48,6 +48,11 @@ class User extends Authenticatable implements JWTSubject
         return $this->hasMany(Transaction::class);
     }
 
+    public function offers(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Offer::class);
+    }
+
     public function getAddressByCoin($id)
     {
         return $this->addresses()->where('coin_id', $id)->first();
