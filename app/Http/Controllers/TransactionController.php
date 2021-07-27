@@ -2,8 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Traits\helpers;
 use App\Models\Coin;
+use App\Http\Traits\helpers;
+use App\Http\Controllers\AddressController;
 
 use App\Models\Transaction;
 use Illuminate\Support\Arr;
@@ -79,17 +80,21 @@ class TransactionController extends Controller
             return response()->json($validator->getMessageBag(), 422);
         }
 
+        // Check if user has sufficient balance
+        if (AddressController::getAddressBalance($coin) < Arr::get($data, 'amount')) {
+            return response()->json(["message" => 'Insufficient wallet balance'], 400);
+        }
+
         // Find user address for this coin
         $sender = auth()->user()->getAddressByCoin($coin['id']);
 
         // Process transaction
         $res = self::processCoinWithdrawal($coin, $sender, Arr::get($data, 'address'), (float)Arr::get($data, 'amount'));
-        // Check for error
+        // Check for success or error
         if (array_key_exists("meta", $res))
             if (array_key_exists("error", $res['meta']))
                 if (array_key_exists("message", $res['meta']['error']))
                     return response()->json(["message" => $res['meta']['error']['message']]);
-        // Check for success
         if (array_key_exists("payload", $res)) {
             auth()->user()->transactions()->create([
                 'coin_id' => $coin['id'], 'type' => 'withdrawal',
@@ -98,7 +103,7 @@ class TransactionController extends Controller
             ]);
             return response()->json(["message" => 'You have successfully sent ' . Arr::get($data, 'amount') . ' ' . strtoupper($coin['short_name']) . ' to ' . Arr::get($data, 'address')]);
         }
-        return response()->json(["message" => 'An error occurred']);
+        return response()->json(["message" => 'An error occurred'], 400);
     }
 
     /**
@@ -162,6 +167,7 @@ class TransactionController extends Controller
     protected static function getRecommendedTransactionFee(): float
     {
         // to do - calculate transaction fee
-        return 0.00008092;
+        // return 0.00008092; // btc
+        return 0.00009758; // bch
     }
 }

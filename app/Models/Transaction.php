@@ -14,6 +14,6 @@ class Transaction extends Model
 
     public function setPartyAttribute($value)
     {
-        $this->attributes['first_name'] = Crypt::encrypt($value);
+        $this->attributes['party'] = Crypt::encrypt($value);
     }
 }

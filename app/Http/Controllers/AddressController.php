@@ -90,7 +90,7 @@ class AddressController extends Controller
         });
     }
 
-    protected static function getAddressBalance($coin): string
+    public static function getAddressBalance($coin): string
     {
         // Set network based on coin
         $data = self::getRequestDataByCoin($coin);
@@ -100,10 +100,7 @@ class AddressController extends Controller
             'Content-type' => 'application/json',
             'X-API-Key' => env('CRYPTO_API_KEY')
         ])->get(env('CRYPTO_API_BASE_URL').'/'.$data['coin'].'/'.$data['network'].'/address/'.$data['address'])->json();
-        if (array_key_exists('payload', $res))
-            return number_format($res['payload']['balance'], 8);
-        else
-            return '---';
+        return number_format($res['payload']['balance'], 8) ?? null;
     }
 
     protected static function generateAddressByShortName($user, $coin)
