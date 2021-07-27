@@ -38,7 +38,10 @@ class AddressController extends Controller
         $balance = [];
         foreach (Coin::all() as $coin){
             $balance[] = [
-                $coin['short_name'] => self::getAddressBalance($coin)
+                $coin['short_name'] => [
+                    'address' => auth()->user()->getAddressByCoin($coin['id'])['pth'],
+                    'balance' => self::getAddressBalance($coin),
+                ]
             ];
         }
         return response()->json(['data' => $balance]);
@@ -74,7 +77,10 @@ class AddressController extends Controller
      **/
     public function getBalanceByCoin(Coin $coin): \Illuminate\Http\JsonResponse
     {
-        return response()->json(['data' => self::getAddressBalance($coin)]);
+        return response()->json(['data' => [
+            'address' => auth()->user()->getAddressByCoin($coin['id'])['pth'],
+            'balance' => self::getAddressBalance($coin),
+        ]]);
     }
 
     public static function generateWalletAddress($user){
