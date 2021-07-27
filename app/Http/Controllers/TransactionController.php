@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Traits\helpers;
 use App\Models\Coin;
 
+use App\Models\Transaction;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Http;
@@ -11,6 +13,7 @@ use Illuminate\Support\Facades\Validator;
 
 class TransactionController extends Controller
 {
+    use helpers;
     /**
      * @OA\Post(
      ** path="/transactions/{coin}/withdraw",
@@ -70,7 +73,7 @@ class TransactionController extends Controller
         $data = Arr::only(request()->all(), ['address', 'amount']);
         $validator = Validator::make($data, [
             'address' => ['required', 'string', 'max:255'],
-            'amount' => ['required', 'numeric']
+            'amount' => ['required', 'numeric', 'gt:0']
         ]);
         if ($validator->fails()){
             return response()->json($validator->getMessageBag(), 422);
@@ -80,65 +83,75 @@ class TransactionController extends Controller
         $sender = auth()->user()->getAddressByCoin($coin['id']);
 
         // Process transaction
-        $res = self::processCoinWithdrawal($coin, $sender, Arr::get($data, 'address'), Arr::get($data, 'amount'));
+        $res = self::processCoinWithdrawal($coin, $sender, Arr::get($data, 'address'), (float)Arr::get($data, 'amount'));
         // Check for error
         if (array_key_exists("meta", $res))
             if (array_key_exists("error", $res['meta']))
                 if (array_key_exists("message", $res['meta']['error']))
                     return response()->json(["message" => $res['meta']['error']['message']]);
-        if (array_key_exists("payload", $res))
-            return response()->json(["message" => 'You have successfully sent '.Arr::get($data, 'amount').' '.strtoupper($coin['short_name']).' to '.Arr::get($data, 'address')]);
+        // Check for success
+        if (array_key_exists("payload", $res)) {
+            auth()->user()->transactions()->create([
+                'coin_id' => $coin['id'], 'type' => 'withdrawal',
+                'amount' => Arr::get($data, 'amount'),
+                'party' => Arr::get($data, 'address')
+            ]);
+            return response()->json(["message" => 'You have successfully sent ' . Arr::get($data, 'amount') . ' ' . strtoupper($coin['short_name']) . ' to ' . Arr::get($data, 'address')]);
+        }
         return response()->json(["message" => 'An error occurred']);
+    }
+
+    /**
+     * @OA\Get(
+     ** path="/transactions/{coin}",
+     *   tags={"Transactions"},
+     *   summary="get all user transactions by a supported coin",
+     *   operationId="get all user transactions by a supported coin",
+     *   security={{ "apiAuth": {} }},
+     *
+     *   @OA\Parameter(
+     *      name="coin",
+     *      in="path",
+     *      required=true,
+     *      @OA\Schema(
+     *           type="string"
+     *      )
+     *   ),
+     *   @OA\Response(
+     *      response=200,
+     *       description="Success",
+     *      @OA\MediaType(
+     *           mediaType="application/json",
+     *      )
+     *   ),
+     *   @OA\Response(
+     *      response=401,
+     *       description="Unauthenticated"
+     *   )
+     *)
+     **/
+    public function getTransactionByCoin(Coin $coin): \Illuminate\Http\JsonResponse
+    {
+        // Set network based on coin
+        $data = self::getRequestDataByCoin($coin);
+
+        // Get transactions
+        $res = Http::withHeaders(self::getHeaders())
+            ->get(env('CRYPTO_API_BASE_URL').'/'.$data['coin'].'/'.$data['network'].'/address/'.$data['address'].'/basic/transactions')
+            ->json();
+        return response()->json(['data' => $res['payload']]);
     }
 
     public static function processCoinWithdrawal($coin, $sender, $to, $amount)
     {
         // Set network based on coin
+        $sig = self::transactionSignature($sender['sig']);
         $fee = self::getRecommendedTransactionFee();
-        if ($coin['short_name'] == 'ETH') {
-            $network = env('CRYPTO_NETWORK_2');
-            $suffix = 'new-pvtkey';
-            $trxData = [
-                "fromAddress" =>  $sender['pth'],
-                "toAddress" => $to,
-                "gasPrice" => 56000000000,
-                "gasLimit" => 21000,
-                "value" => $amount,
-                "privateKey" => self::transactionSignature($sender['sig'])
-            ];
-        } else {
-            $network = env('CRYPTO_NETWORK_1');
-            $suffix = 'new';
-            $trxData = [
-                "createTx" =>  [
-                    "inputs" => [
-                        [
-                            "address" => $sender['pth'],
-                            "value" => ($amount - $fee)
-                        ]
-                    ],
-                    "outputs" => [
-                        [
-                            "address" => $to,
-                            "value" => ($amount - $fee)
-                        ]
-                    ],
-                    "fee" => [
-                        "address" => $sender['pth'],
-                        "value" =>  $fee
-                    ]
-                ],
-                "wifs" => [
-                    self::transactionSignature($sender['sig'])
-                ]
-            ];
-        }
-
+        $data = self::getRequestDataByCoin($coin, $sender['pth'], $to, $sig, $amount, $fee);
         // Process withdrawal
-        return Http::withHeaders([
-            'Content-type' => 'application/json',
-            'X-API-Key' => env('CRYPTO_API_KEY')
-        ])->post('https://api.cryptoapis.io/v1/bc/'.strtolower($coin['short_name']).'/'.$network.'/txs/'.$suffix, $trxData)->json();
+        return Http::withHeaders(self::getHeaders())
+            ->post(env('CRYPTO_API_BASE_URL').'/'.$data['coin'].'/'.$data['network'].'/txs/'.$data['suffix'], $data['trxData'])
+            ->json();
     }
 
     private static function transactionSignature($key): string

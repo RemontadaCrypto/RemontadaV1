@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Traits\helpers;
 use App\Models\Address;
 use App\Models\Coin;
 
@@ -10,6 +11,7 @@ use Illuminate\Support\Facades\Http;
 
 class AddressController extends Controller
 {
+    use helpers;
     /**
      * @OA\Get(
      ** path="/balance/all",
@@ -82,20 +84,16 @@ class AddressController extends Controller
         });
     }
 
-    protected static function getAddressBalance($coin)
+    protected static function getAddressBalance($coin): string
     {
         // Set network based on coin
-        if ($coin['short_name'] == 'ETH') {
-            $network = env('CRYPTO_NETWORK_2');
-        } else {
-            $network = env('CRYPTO_NETWORK_1');
-        }
+        $data = self::getRequestDataByCoin($coin);
+
         // Generate address
-        $address = auth()->user()->getAddressByCoin($coin['id'])['pth'];
         $res = Http::withHeaders([
             'Content-type' => 'application/json',
             'X-API-Key' => env('CRYPTO_API_KEY')
-        ])->get('https://api.cryptoapis.io/v1/bc/'.strtolower($coin['short_name']).'/'.$network.'/address/'.$address)->json();
+        ])->get(env('CRYPTO_API_BASE_URL').'/'.$data['coin'].'/'.$data['network'].'/address/'.$data['address'])->json();
         if (array_key_exists('payload', $res))
             return number_format($res['payload']['balance'], 8);
         else
@@ -105,29 +103,19 @@ class AddressController extends Controller
     protected static function generateAddressByShortName($user, $coin)
     {
         // Set network based on coin
-        if ($coin['short_name'] == 'ETH') {
-            $network = env('CRYPTO_NETWORK_2');
-            $key = 'privateKey';
-        } else {
-            $network = env('CRYPTO_NETWORK_1');
-            $key = 'wif';
-        }
+        $data = self::getRequestDataByCoin($coin);
+
         // Generate address
         $res = Http::withHeaders([
             'Content-type' => 'application/json',
             'X-API-Key' => env('CRYPTO_API_KEY')
-        ])->post('https://api.cryptoapis.io/v1/bc/'.strtolower($coin['short_name']).'/'.$network.'/address')->json();
+        ])->post(env('CRYPTO_API_BASE_URL').'/'.$data['coin'].'/'.$data['network'].'/address')->json();
         // Save user address
         if (array_key_exists("payload", $res))
             $user->addresses()->create([
                 'coin_id' => $coin['id'],
                 'pth' => Crypt::encryptString($res['payload']['address']),
-                'sig' => Crypt::encryptString($res['payload'][$key])
+                'sig' => Crypt::encryptString($res['payload'][$data['key']])
             ]);
-    }
-
-    public function getSig($address): string
-    {
-        return Crypt::decryptString(Address::where('address', $address)->first()->sig);
     }
 }

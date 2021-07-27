@@ -464,6 +464,41 @@
                     }
                 ]
             }
+        },
+        "/transactions/{coin}": {
+            "get": {
+                "tags": [
+                    "Transactions"
+                ],
+                "summary": "get all user transactions by a supported coin",
+                "operationId": "get all user transactions by a supported coin",
+                "parameters": [
+                    {
+                        "name": "coin",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
         }
     },
     "components": {

@@ -41,6 +41,7 @@ Route::group(['middleware' => 'api'], function () {
         });
         Route::group(['prefix' => 'transactions'], function () {
             Route::post('/{coin:short_name}/withdraw', [TransactionController::class, 'withdraw']);
+            Route::get('/{coin:short_name}', [TransactionController::class, 'getTransactionByCoin']);
         });
     });
 });
