@@ -40,7 +40,7 @@ class AddressController extends Controller
             $balance[] = [
                 $coin['short_name'] => [
                     'address' => auth()->user()->getAddressByCoin($coin['id'])['pth'],
-                    'balance' => self::getAddressBalance($coin),
+                    'balance' => self::getAddressBalance($coin)
                 ]
             ];
         }
@@ -90,7 +90,7 @@ class AddressController extends Controller
         });
     }
 
-    public static function getAddressBalance($coin): string
+    public static function getAddressBalance($coin): ?string
     {
         // Set network based on coin
         $data = self::getRequestDataByCoin($coin);
@@ -120,5 +120,18 @@ class AddressController extends Controller
                 'pth' => Crypt::encryptString($res['payload']['address']),
                 'sig' => Crypt::encryptString($res['payload'][$data['key']])
             ]);
+    }
+
+    public static function getAllAddresses(): array
+    {
+        $addresses = [];
+        foreach (Coin::all() as $coin){
+            $addresses[] = [
+                $coin['short_name'] => [
+                    'address' => auth()->user()->getAddressByCoin($coin['id'])['pth'],
+                ]
+            ];
+        }
+        return $addresses;
     }
 }

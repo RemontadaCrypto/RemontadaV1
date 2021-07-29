@@ -519,6 +519,77 @@ class AuthController extends Controller
         return response()->json(['message' => 'Password reset successfully']);
     }
 
+        /**
+     * @OA\Put(
+     ** path="/auth/password/update",
+     *   tags={"Auth"},
+     *   summary="Update password",
+     *   operationId="update password",
+     *   security={{ "apiAuth": {} }},
+     *
+     *   @OA\Parameter(
+     *      name="old_password",
+     *      in="query",
+     *      required=true,
+     *      @OA\Schema(
+     *           type="string"
+     *      )
+     *   ),
+     *   @OA\Parameter(
+     *      name="new_password",
+     *      in="query",
+     *      required=true,
+     *      @OA\Schema(
+     *           type="string"
+     *      )
+     *   ),
+     *     @OA\Parameter(
+     *      name="new_password_confirmation",
+     *      in="query",
+     *      required=true,
+     *      @OA\Schema(
+     *          type="string"
+     *      )
+     *   ),
+     *   @OA\Response(
+     *      response=200,
+     *       description="Success",
+     *      @OA\MediaType(
+     *           mediaType="application/json",
+     *      )
+     *   ),
+     *   @OA\Response(
+     *      response=400,
+     *       description="Bad Request"
+     *   ),
+     *   @OA\Response(
+     *      response=422,
+     *      description="Unprocessed Entity"
+     *   )
+     *)
+     **/
+    public function updatePassword(): \Illuminate\Http\JsonResponse
+    {
+        // Set credentials and validate request
+        $credentials = Arr::only(request()->all(), ['old_password', 'new_password', 'new_password_confirmation']);
+        $validator = Validator::make($credentials, [
+            'old_password' => ['required'],
+            'new_password' => ['required', 'confirmed', Password::min(8)->mixedCase()->uncompromised()->numbers()]
+        ]);
+        if ($validator->fails()){
+            return response()->json($validator->messages(), 422);
+        }
+
+        // Verify old password
+        if (!Hash::check($credentials['old_password'], auth()->user()['password']))
+            return response()->json(['message' => 'Old password is incorrect'], 400);
+
+        auth()->user()->update([
+            'password' => Hash::make($credentials['new_password'])
+        ]);
+        return response()->json(['message' => 'Password updated successfully']);
+    }
+
     protected function respondWithTokenAndUser($user, $token): \Illuminate\Http\JsonResponse
     {
         return response()->json([

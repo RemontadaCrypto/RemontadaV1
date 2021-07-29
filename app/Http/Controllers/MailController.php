@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Notifications\CustomEmailNotification;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 
 class MailController extends Controller
 {
@@ -21,5 +22,11 @@ class MailController extends Controller
         $line2 = 'This password reset link will expire in 60 minutes.<br><br>If you did not request a password reset, no further action is required.';
         $url = env('FRONTEND_URL').'/password/change?email='.$user->email.'&token='.$token;
         $user->notify(new CustomEmailNotification('Reset Password Notification', $line1, $line2, 'Reset Password', $url));
+    }
+
+    public static function sendWithdrawalTransactionMail($user, $payload)
+    {
+        $line1 = 'Your withdrawal of '.$payload['amount'].$payload['coin']['name'].' to '.$payload['party'].' was successful';
+        $user->notify(new CustomEmailNotification('Withdrawal Transaction', $line1));
     }
 }

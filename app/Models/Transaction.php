@@ -16,4 +16,14 @@ class Transaction extends Model
     {
         $this->attributes['party'] = Crypt::encrypt($value);
     }
+
+    public function getPartyAttribute($value)
+    {
+        $this->attributes['party'] = Crypt::decrypt($value);
+    }
+
+    public function coin()
+    {
+        $this->belongsTo(Coin::class);
+    }
 }

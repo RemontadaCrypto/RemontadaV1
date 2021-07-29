@@ -19,7 +19,7 @@ class CustomEmailNotification extends Notification
     public $buttonText;
     public $url;
 
-    public function __construct($title, $line1, $line2, $buttonText = null, $url = null)
+    public function __construct($title, $line1, $line2 = null, $buttonText = null, $url = null)
     {
         $this->title = $title;
         $this->line1 = $line1;

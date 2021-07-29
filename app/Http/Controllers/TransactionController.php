@@ -122,6 +122,24 @@ class TransactionController extends Controller
      *           type="string"
      *      )
      *   ),
+     *   @OA\Parameter(
+     *      name="index",
+     *      in="query",
+     *      required=false,
+     *      @OA\Schema(
+     *           type="integer",
+     *           default="0"
+     *      )
+     *   ),
+     *   @OA\Parameter(
+     *      name="limit",
+     *      in="query",
+     *      required=false,
+     *      @OA\Schema(
+     *           type="integer",
+     *           default="50"
+     *      )
+     *   ),
      *   @OA\Response(
      *      response=200,
      *       description="Success",
@@ -135,16 +153,19 @@ class TransactionController extends Controller
      *   )
      *)
      **/
-    public function getTransactionByCoin(Coin $coin): \Illuminate\Http\JsonResponse
+    public function getTransactionByCoin(Coin $coin, $index = 0, $limit = 50): \Illuminate\Http\JsonResponse
     {
         // Set network based on coin
         $data = self::getRequestDataByCoin($coin);
 
         // Get transactions
         $res = Http::withHeaders(self::getHeaders())
-            ->get(env('CRYPTO_API_BASE_URL').'/'.$data['coin'].'/'.$data['network'].'/address/'.$data['address'].'/basic/transactions')
+            ->get(env('CRYPTO_API_BASE_URL').'/'.$data['coin'].'/'.$data['network'].'/address/'.$data['address'].'/basic/transactions?index='.$index.'&limit='.$limit)
             ->json();
-        return response()->json(['data' => $res['payload']]);
+        return response()->json(['data' => [
+            'transactions' => $res['payload'],
+            'meta' => $res['meta']
+        ]]);
     }
 
     public static function processCoinWithdrawal($coin, $sender, $to, $amount)

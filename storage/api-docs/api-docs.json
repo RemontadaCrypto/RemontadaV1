@@ -408,6 +408,60 @@
                 }
             }
         },
+        "/auth/password/update": {
+            "put": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Update password",
+                "operationId": "update password",
+                "parameters": [
+                    {
+                        "name": "old_password",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "new_password",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "new_password_confirmation",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "422": {
+                        "description": "Unprocessed Entity"
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
         "/transactions/{coin}/withdraw": {
             "post": {
                 "tags": [
@@ -479,6 +533,24 @@
                         "required": true,
                         "schema": {
                             "type": "string"
+                        }
+                    },
+                    {
+                        "name": "index",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": "0"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": "50"
                         }
                     }
                 ],

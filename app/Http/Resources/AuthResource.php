@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Http\Controllers\AddressController;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class AuthResource extends JsonResource
@@ -14,6 +15,15 @@ class AuthResource extends JsonResource
      */
     public function toArray($request)
     {
-        return parent::toArray($request);
+
+        return [
+            'id' => $this['id'],
+            'name' => $this['name'],
+            'email' => $this['email'],
+            'phone' => $this['phone'],
+            'email_verified' => !is_null($this['email_verified_at']),
+            'joined_date' => $this['created_at'],
+            'addresses' => AddressController::getAllAddresses()
+        ];
     }
 }

@@ -31,6 +31,7 @@ Route::group(['middleware' => 'api'], function () {
             Route::post('/refresh', [AuthController::class, 'refresh']);
             Route::post('/user', [AuthController::class, 'user']);
             Route::post('/email/resend', [AuthController::class, 'resendEmailVerificationLink'])->middleware(['throttle:3,1']);
+            Route::put('/password/update', [AuthController::class, 'updatePassword']);
         });
     });
 
