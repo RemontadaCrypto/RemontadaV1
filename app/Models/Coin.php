@@ -13,4 +13,9 @@ class Coin extends Model
     {
         return $this->hasMany(Transaction::class);
     }
+
+    public function offers(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Offer::class);
+    }
 }

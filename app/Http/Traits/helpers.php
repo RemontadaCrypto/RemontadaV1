@@ -53,13 +53,17 @@ trait helpers {
                 ]
             ];
         }
+        $address = null;
+        if (auth()->user()) {
+            $address = auth()->user()->getAddressByCoin($coin['id'])['pth'] ?? null;
+        }
         return [
             'network' => $network,
             'suffix' => $suffix,
             'trxData' => $trxData,
             'key' => $key,
             'coin' => strtolower($coin['short_name']),
-            'address' => auth()->user()->getAddressByCoin($coin['id'])['pth']
+            'address' => $address
         ];
     }
 }

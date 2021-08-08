@@ -2,7 +2,11 @@
 
 namespace App\Exceptions;
 
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Illuminate\Http\Exceptions\ThrottleRequestsException;
+use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Throwable;
 
 class Handler extends ExceptionHandler
@@ -37,5 +41,24 @@ class Handler extends ExceptionHandler
         $this->reportable(function (Throwable $e) {
             //
         });
+    }
+
+    public function render($request, Throwable $e)
+    {
+        if ($request->expectsJson()){
+            if ($e instanceof ModelNotFoundException){
+                return response()->json(['errors' => 'Model Not Found'], 404);
+            }
+            if ($e instanceof MethodNotAllowedHttpException){
+                return response()->json(['errors' => 'Method Not Allowed'], 405);
+            }
+            if ($e instanceof NotFoundHttpException){
+                return response()->json(['errors' => 'Invalid Route'], 404);
+            }
+            if ($e instanceof ThrottleRequestsException){
+                return response()->json(['errors' => 'Too Many Requests'], 429);
+            }
+        }
+        return parent::render($request, $e);
     }
 }

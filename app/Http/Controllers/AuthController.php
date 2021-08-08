@@ -79,7 +79,7 @@ class AuthController extends Controller
         $credentials = Arr::only(request()->all(), ['email', 'name', 'password', 'password_confirmation']);
         $validator = Validator::make($credentials, [
             'email' => ['required', 'unique:users,email', 'max:255'],
-            'name' => ['required', 'max:255'],
+            'name' => ['required', 'unique:users,name', 'max:255'],
             'password' => ['required', 'confirmed', Password::min(8)->mixedCase()->uncompromised()->numbers()]
         ]);
         if ($validator->fails()){
@@ -289,8 +289,8 @@ class AuthController extends Controller
      * @OA\Post(
      ** path="/auth/user",
      *   tags={"Auth"},
-     *   summary="Get Authenticated User Informations",
-     *   operationId="get authenticated user informations",
+     *   summary="Get Authenticated User Information",
+     *   operationId="get authenticated user information",
      *   security={{ "apiAuth": {} }},
      *
      *   @OA\Response(

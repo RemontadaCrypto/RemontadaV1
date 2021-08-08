@@ -37,10 +37,11 @@ class AddressController extends Controller
     {
         $balance = [];
         foreach (Coin::all() as $coin){
+            $address = auth()->user()->getAddressByCoin($coin['id'])['pth'] ?? null;
             $balance[] = [
                 $coin['short_name'] => [
-                    'address' => auth()->user()->getAddressByCoin($coin['id'])['pth'],
-                    'balance' => self::getAddressBalance($coin)
+                    'address' => $address,
+                    'balance' => $address ? self::getAddressBalance($coin) : null
                 ]
             ];
         }
@@ -58,6 +59,7 @@ class AddressController extends Controller
      *      name="coin",
      *      in="path",
      *      required=true,
+     *      description="e.g btc, eth, ltc",
      *      @OA\Schema(
      *           type="string"
      *      )
@@ -77,9 +79,10 @@ class AddressController extends Controller
      **/
     public function getBalanceByCoin(Coin $coin): \Illuminate\Http\JsonResponse
     {
+        $address = auth()->user()->getAddressByCoin($coin['id'])['pth'] ?? null;
         return response()->json(['data' => [
-            'address' => auth()->user()->getAddressByCoin($coin['id'])['pth'],
-            'balance' => self::getAddressBalance($coin),
+            'address' => $address,
+            'balance' => $address ? self::getAddressBalance($coin) : null
         ]]);
     }
 
@@ -128,7 +131,7 @@ class AddressController extends Controller
         foreach (Coin::all() as $coin){
             $addresses[] = [
                 $coin['short_name'] => [
-                    'address' => auth()->user()->getAddressByCoin($coin['id'])['pth'],
+                    'address' => auth()->user()->getAddressByCoin($coin['id'])['pth'] ?? null,
                 ]
             ];
         }

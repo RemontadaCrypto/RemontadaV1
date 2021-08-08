@@ -55,6 +55,7 @@
                     {
                         "name": "coin",
                         "in": "path",
+                        "description": "e.g btc, eth, ltc",
                         "required": true,
                         "schema": {
                             "type": "string"
@@ -453,6 +454,645 @@
                     },
                     "422": {
                         "description": "Unprocessed Entity"
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/coins": {
+            "get": {
+                "tags": [
+                    "Coins"
+                ],
+                "summary": "All supported coin",
+                "operationId": "all supported coin",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/coins/{coin}/show": {
+            "get": {
+                "tags": [
+                    "Coins"
+                ],
+                "summary": "Show coin",
+                "operationId": "show coin",
+                "parameters": [
+                    {
+                        "name": "coin",
+                        "in": "path",
+                        "description": "e.g btc, eth, bch",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/offers": {
+            "get": {
+                "tags": [
+                    "Offer"
+                ],
+                "summary": "Get all offers",
+                "operationId": "get all offers",
+                "parameters": [
+                    {
+                        "name": "coin",
+                        "in": "query",
+                        "description": "e.g btc, eth, bch",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "price",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "filter",
+                        "in": "query",
+                        "description": "e.g popularity",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/offers/user": {
+            "get": {
+                "tags": [
+                    "Offer"
+                ],
+                "summary": "Get authenticated user all offers",
+                "operationId": "get authenticated user all offers",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/offers/{offer}/show": {
+            "get": {
+                "tags": [
+                    "Offer"
+                ],
+                "summary": "Show offers",
+                "operationId": "show offers",
+                "parameters": [
+                    {
+                        "name": "offer",
+                        "in": "path",
+                        "description": "this is the offer ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/offers/store": {
+            "post": {
+                "tags": [
+                    "Offer"
+                ],
+                "summary": "Store offer",
+                "operationId": "store offer",
+                "parameters": [
+                    {
+                        "name": "coin",
+                        "in": "query",
+                        "description": "e.g btc, eth, ltc",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "price_type",
+                        "in": "query",
+                        "description": "fixed or relative",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "price",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "min",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "max",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "rate",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessed Entity"
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/offers/{offer}/update": {
+            "put": {
+                "tags": [
+                    "Offer"
+                ],
+                "summary": "Update offer",
+                "operationId": "update offer",
+                "parameters": [
+                    {
+                        "name": "offer",
+                        "in": "path",
+                        "description": "this is the offer ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "price_type",
+                        "in": "query",
+                        "description": "fixed or relative",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "price",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "min",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "max",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "rate",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessed Entity"
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/offers/{offer}/delete": {
+            "delete": {
+                "tags": [
+                    "Offer"
+                ],
+                "summary": "Delete offer",
+                "operationId": "delete offer",
+                "parameters": [
+                    {
+                        "name": "offer",
+                        "in": "path",
+                        "description": "this is the offer ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/trades/user": {
+            "get": {
+                "tags": [
+                    "Trade"
+                ],
+                "summary": "Get authenticated user trades",
+                "operationId": "get authenticated user trades",
+                "parameters": [
+                    {
+                        "name": "filter",
+                        "in": "query",
+                        "description": "pending, cancelled or successful",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/trades/{trade}/show": {
+            "get": {
+                "tags": [
+                    "Trade"
+                ],
+                "summary": "Show trade",
+                "operationId": "show trade",
+                "parameters": [
+                    {
+                        "name": "trade",
+                        "in": "path",
+                        "description": "This is the trade ID",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/trades/initiate": {
+            "post": {
+                "tags": [
+                    "Trade"
+                ],
+                "summary": "Initiate trade",
+                "operationId": "initiate trade",
+                "parameters": [
+                    {
+                        "name": "coin",
+                        "in": "query",
+                        "description": "e.g btc, eth, ltc",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "offer_id",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "amount",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessed Entity"
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/trades/{trade}/accept": {
+            "post": {
+                "tags": [
+                    "Trade"
+                ],
+                "summary": "Accept trade",
+                "operationId": "accept trade",
+                "parameters": [
+                    {
+                        "name": "trade",
+                        "in": "path",
+                        "description": "this is the trade ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/trades/{trade}/make-payment": {
+            "post": {
+                "tags": [
+                    "Trade"
+                ],
+                "summary": "Make payment for trade",
+                "operationId": "make payment for trade",
+                "parameters": [
+                    {
+                        "name": "trade",
+                        "in": "path",
+                        "description": "this is the trade ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/trades/{trade}/confirm-payment": {
+            "post": {
+                "tags": [
+                    "Trade"
+                ],
+                "summary": "Confirm payment for trade",
+                "operationId": "confirm payment for trade",
+                "parameters": [
+                    {
+                        "name": "trade",
+                        "in": "path",
+                        "description": "this is the trade ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
+        "/trades/{trade}/cancel": {
+            "post": {
+                "tags": [
+                    "Trade"
+                ],
+                "summary": "Cancel trade",
+                "operationId": "cancel trade",
+                "parameters": [
+                    {
+                        "name": "trade",
+                        "in": "path",
+                        "description": "this is the trade ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "content": {
+                            "application/json": {}
+                        }
                     }
                 },
                 "security": [

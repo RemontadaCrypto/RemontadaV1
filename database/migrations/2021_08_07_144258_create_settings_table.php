@@ -2,9 +2,10 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
-class CreateTransactionsTable extends Migration
+class CreateSettingsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,15 +14,17 @@ class CreateTransactionsTable extends Migration
      */
     public function up()
     {
-        Schema::create('transactions', function (Blueprint $table) {
+        Schema::create('settings', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id');
-            $table->foreignId('coin_id');
-            $table->enum('type', ['deposit', 'withdrawal']);
-            $table->decimal('amount', 20, 9);
-            $table->text('party');
+            $table->double('fee');
+            $table->double('rate');
             $table->timestamps();
         });
+
+        DB::table('settings')->insert([
+            'fee' => '10',
+            'rate' => '470'
+        ]);
     }
 
     /**
@@ -31,6 +34,6 @@ class CreateTransactionsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('transactions');
+        Schema::dropIfExists('settings');
     }
 }

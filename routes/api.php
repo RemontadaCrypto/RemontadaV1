@@ -2,6 +2,9 @@
 
 use App\Http\Controllers\AddressController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\DefaultController;
+use App\Http\Controllers\OfferController;
+use App\Http\Controllers\TradeController;
 use App\Http\Controllers\TransactionController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -43,6 +46,27 @@ Route::group(['middleware' => 'api'], function () {
         Route::group(['prefix' => 'transactions'], function () {
             Route::post('/{coin:short_name}/withdraw', [TransactionController::class, 'withdraw']);
             Route::get('/{coin:short_name}', [TransactionController::class, 'getTransactionByCoin']);
+        });
+        Route::group(['prefix' => 'coins'], function () {
+            Route::get('/', [DefaultController::class, 'getCoins']);
+            Route::get('/{coin:short_name}/show', [DefaultController::class, 'showCoin']);
+        });
+        Route::group(['prefix' => 'offers'], function () {
+            Route::get('/', [OfferController::class, 'index']);
+            Route::get('/user', [OfferController::class, 'userOffers']);
+            Route::post('/store', [OfferController::class, 'store']);
+            Route::get('/{offer}/show', [OfferController::class, 'show']);
+            Route::put('/{offer}/update', [OfferController::class, 'update']);
+            Route::delete('/{offer}/delete', [OfferController::class, 'destroy']);
+        });
+        Route::group(['prefix' => 'trades'], function () {
+            Route::get('/user', [TradeController::class, 'fetchUserTrades']);
+            Route::post('/initiate', [TradeController::class, 'initiate']);
+            Route::get('/{trade}/show', [TradeController::class, 'show']);
+            Route::post('/{trade}/accept', [TradeController::class, 'accept']);
+            Route::post('/{trade}/make-payment', [TradeController::class, 'makePayment']);
+            Route::post('/{trade}/confirm-payment', [TradeController::class, 'confirmPayment']);
+            Route::post('/{trade}/cancel', [TradeController::class, 'cancel']);
         });
     });
 });

@@ -2,11 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\SendCustomEmailJob;
 use App\Models\Coin;
 use App\Http\Traits\helpers;
-use App\Http\Controllers\AddressController;
-
-use App\Models\Transaction;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Http;
@@ -94,13 +92,15 @@ class TransactionController extends Controller
         if (array_key_exists("meta", $res))
             if (array_key_exists("error", $res['meta']))
                 if (array_key_exists("message", $res['meta']['error']))
-                    return response()->json(["message" => $res['meta']['error']['message']]);
+                    return response()->json(["message" => $res['meta']['error']['message']], 400);
         if (array_key_exists("payload", $res)) {
-            auth()->user()->transactions()->create([
+            $transaction = auth()->user()->transactions()->create([
                 'coin_id' => $coin['id'], 'type' => 'withdrawal',
                 'amount' => Arr::get($data, 'amount'),
                 'party' => Arr::get($data, 'address')
             ]);
+            // Dispatch relevant job
+            SendCustomEmailJob::dispatch(auth()->user(), 'withdrawal', $transaction);
             return response()->json(["message" => 'You have successfully sent ' . Arr::get($data, 'amount') . ' ' . strtoupper($coin['short_name']) . ' to ' . Arr::get($data, 'address')]);
         }
         return response()->json(["message" => 'An error occurred'], 400);
@@ -188,7 +188,7 @@ class TransactionController extends Controller
     protected static function getRecommendedTransactionFee(): float
     {
         // to do - calculate transaction fee
-        // return 0.00008092; // btc
-        return 0.00009758; // bch
+         return 0.00008092; // btc
+//        return 0.00009758; // bch
     }
 }

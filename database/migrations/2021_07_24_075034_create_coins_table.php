@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\SettingController;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -19,30 +20,14 @@ class CreateCoinsTable extends Migration
             $table->string('name');
             $table->string('slug');
             $table->string('short_name');
+            $table->double('market_cap', 30, 9);
+            $table->double('volume', 30, 9);
+            $table->double('price', 30, 9);
         });
 
-        DB::table('coins')->insert([
-            [
-                'name' => 'Bitcoin',
-                'slug' => 'bitcoin',
-                'short_name' => 'BTC'
-            ],
-            [
-                'name' => 'Ethereum',
-                'slug' => 'ethereum',
-                'short_name' => 'ETH'
-            ],
-            [
-                'name' => 'Bitcoin Cash',
-                'slug' => 'bitcoin-cash',
-                'short_name' => 'BCH'
-            ],
-            [
-                'name' => 'Litecoin',
-                'slug' => 'litecoin',
-                'short_name' => 'LTC'
-            ],
-        ]);
+        $supportedCoins = ['BTC', 'ETH', 'BCH', 'LTC'];
+        $coinsArr = SettingController::getSupportedCoinData($supportedCoins);
+        DB::table('coins')->insert($coinsArr);
     }
 
     /**
