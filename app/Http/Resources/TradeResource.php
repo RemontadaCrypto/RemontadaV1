@@ -27,6 +27,8 @@ class TradeResource extends JsonResource
             'fee_in_coin' => $this['fee_in_coin'],
             'fee_in_usd' => round($this['fee_in_usd'], 2),
             'fee_in_ngn' => round($this['fee_in_ngn'], 2),
+            'buyer_trade_state' => $this['buyer_trade_state'],
+            'seller_trade_state' => $this['seller_trade_state'],
             'status' => $this['status'],
             'coin_released' => $this['coin_released'] == 1,
             'initiated_on' => $this['created_at']

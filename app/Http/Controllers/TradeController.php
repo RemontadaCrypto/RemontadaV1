@@ -2,6 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\TradeAcceptedEvent;
+use App\Events\TradeInitiatedEvent;
+use App\Events\TradeCancelledEvent;
+use App\Events\PaymentMadeEvent;
+use App\Events\PaymentConfirmedEvent;
 use App\Http\Resources\TradeResource;
 use App\Models\Coin;
 use App\Models\Offer;
@@ -163,8 +168,8 @@ class TradeController extends Controller
         if (auth()->user()['id'] == $offer->user['id'])
             return response()->json(['error' => 'You can\'t initiate a trade with your own offer' ], 400);
         // Check if seller has sufficient balance for trade
-        if (AddressController::getAddressBalance($coin) < round(Arr::get($data, 'amount') / $offer['price'], 9))
-            return response()->json(["message" => 'Seller doesn\'t have sufficient wallet balance for trade'], 400);
+//        if (AddressController::getAddressBalance($coin) < round(Arr::get($data, 'amount') / $offer['price'], 9))
+//            return response()->json(["message" => 'Seller doesn\'t have sufficient wallet balance for trade'], 400);
         // Get trade fee
         $feeInUSD = Setting::first()['fee'];
         // Create trade
@@ -181,6 +186,7 @@ class TradeController extends Controller
             'fee_in_usd' => $feeInUSD
         ]);
         $offer->update(['status' => 'running']);
+        broadcast(new TradeInitiatedEvent($trade))->toOthers();
         return response()->json([
             'message' => 'Trade initiated successfully',
             'data' => new TradeResource($trade)
@@ -230,6 +236,7 @@ class TradeController extends Controller
         $trade->update([
             'seller_trade_state' => 1
         ]);
+        broadcast(new TradeAcceptedEvent($trade))->toOthers();
         return response()->json([
             'message' => 'Trade accepted successfully',
             'data' => new TradeResource($trade)
@@ -275,10 +282,11 @@ class TradeController extends Controller
         if (auth()->user()['id'] != $trade['buyer_id'])
             return response()->json(['error' => 'Action unauthorized'], 400);
         if ($trade['buyer_trade_state'] != 1 || $trade['seller_trade_state'] != 1)
-            return response()->json(['error' => 'Action not allowed, trade not accepted by seller'], 400);
+            return response()->json(['error' => 'Action not allowed, trade not yet accepted by seller'], 400);
         $trade->update([
             'buyer_trade_state' => 2
         ]);
+        broadcast(new PaymentMadeEvent($trade))->toOthers();
         return response()->json([
             'message' => 'Payment made request sent successfully',
             'data' => new TradeResource($trade)
@@ -330,6 +338,7 @@ class TradeController extends Controller
             'status' => 'successful'
         ]);
         $trade->offer()->update(['status' => 'closed']);
+        broadcast(new PaymentConfirmedEvent($trade))->toOthers();
         return response()->json([
             'message' => 'Payment confirmed successfully, trade successful',
             'data' => new TradeResource($trade)
@@ -380,6 +389,7 @@ class TradeController extends Controller
             'status' => 'cancelled'
         ]);
         $trade->offer()->update(['status' => 'active']);
+        broadcast(new TradeCancelledEvent($trade))->toOthers();
         return response()->json([
             'message' => 'Trade cancelled successfully',
             'data' => new TradeResource($trade)
