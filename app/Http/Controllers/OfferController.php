@@ -44,6 +44,22 @@ class OfferController extends Controller
      *          type="string"
      *      )
      *   ),
+     *   @OA\Parameter(
+     *      name="offset",
+     *      in="query",
+     *      required=false,
+     *      @OA\Schema(
+     *          type="integer"
+     *      )
+     *   ),
+     *   @OA\Parameter(
+     *      name="limit",
+     *      in="query",
+     *      required=false,
+     *      @OA\Schema(
+     *          type="integer"
+     *      )
+     *   ),
      *    @OA\Response(
      *      response=200,
      *       description="Success",
@@ -62,6 +78,14 @@ class OfferController extends Controller
      **/
     public function index(): \Illuminate\Http\JsonResponse
     {
+        // Set data and validate request
+        $data = Arr::only(request()->all(), ['filter', 'offset', 'limit']);
+        $validator = Validator::make($data, [
+            'offset' => ['sometimes', 'integer'],
+            'limit' => ['sometimes', 'integer'],
+        ]);
+        if ($validator->fails())
+            return response()->json($validator->getMessageBag(), 422);
         $offers = Offer::query()->with(['user'])->where('status', 'active');
         // filter by coin
         if (request('coin')) {
@@ -70,6 +94,7 @@ class OfferController extends Controller
                 return response()->json(['error' => 'Coin not found or not supported'], 400);
             $offers->where('coin_id', $coin['id']);
         }
+        $count = $offers->count();
         // filter by price
         if (request('price')) {
             $offers->where('min', '<=', request('price'))
@@ -77,7 +102,14 @@ class OfferController extends Controller
         }
         // filter by user trades
 
-        return response()->json(OfferResource::collection($offers->get()));
+        return response()->json([
+            'data' => OfferResource::collection($offers->offset(Arr::get($data, 'offset', 0))->limit(Arr::get($data, 'limit', 50))->get()),
+            'meta' => [
+                'total' => $count,
+                'offset' => (int) Arr::get($data, 'offset', 0),
+                'limit' => (int) Arr::get($data, 'limit', 50)
+            ]
+        ]);
     }
 
     /**
@@ -87,6 +119,22 @@ class OfferController extends Controller
      *   summary="Get authenticated user all offers",
      *   operationId="get authenticated user all offers",
      *   security={{ "apiAuth": {} }},
+     *   @OA\Parameter(
+     *      name="offset",
+     *      in="query",
+     *      required=false,
+     *      @OA\Schema(
+     *          type="integer"
+     *      )
+     *   ),
+     *   @OA\Parameter(
+     *      name="limit",
+     *      in="query",
+     *      required=false,
+     *      @OA\Schema(
+     *          type="integer"
+     *      )
+     *   ),
      *    @OA\Response(
      *      response=200,
      *       description="Success",
@@ -98,7 +146,22 @@ class OfferController extends Controller
      **/
     public function userOffers(): \Illuminate\Http\JsonResponse
     {
-        return response()->json(OfferResource::collection(auth()->user()->offers()->get()));
+         // Set data and validate request
+         $data = Arr::only(request()->all(), ['filter', 'offset', 'limit']);
+         $validator = Validator::make($data, [
+             'offset' => ['sometimes', 'integer'],
+             'limit' => ['sometimes', 'integer'],
+         ]);
+         if ($validator->fails())
+             return response()->json($validator->getMessageBag(), 422);
+        return response()->json([
+            'data' => OfferResource::collection(auth()->user()->offers()->offset(Arr::get($data, 'offset', 0))->limit(Arr::get($data, 'limit', 50))->get()),
+            'meta' => [
+                'total' => auth()->user()->offers()->count(),
+                'offset' => (int) Arr::get($data, 'offset', 0),
+                'limit' => (int) Arr::get($data, 'limit', 50)
+            ]
+        ]);
     }
 
     /**

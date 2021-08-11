@@ -35,6 +35,22 @@ class TradeController extends Controller
      *          type="string"
      *      )
      *   ),
+     *   @OA\Parameter(
+     *      name="offset",
+     *      in="query",
+     *      required=false,
+     *      @OA\Schema(
+     *          type="integer"
+     *      )
+     *   ),
+     *   @OA\Parameter(
+     *      name="limit",
+     *      in="query",
+     *      required=false,
+     *      @OA\Schema(
+     *          type="integer"
+     *      )
+     *   ),
      *   @OA\Response(
      *      response=200,
      *       description="Success",
@@ -47,17 +63,27 @@ class TradeController extends Controller
     public function fetchUserTrades(): \Illuminate\Http\JsonResponse
     {
         // Set data and validate request
-        $data = Arr::only(request()->all(), ['filter']);
+        $data = Arr::only(request()->all(), ['filter', 'offset', 'limit']);
         $validator = Validator::make($data, [
-            'filter' => ['sometimes', 'in:pending, cancelled, successful']
+            'filter' => ['sometimes', 'in:pending, cancelled, successful'],
+            'offset' => ['sometimes', 'integer'],
+            'limit' => ['sometimes', 'integer'],
         ]);
         if ($validator->fails())
             return response()->json($validator->getMessageBag(), 422);
         $trade = Trade::where(function ($q) { $q->where('seller_id', auth()->user()['id'])->orWhere('buyer_id', auth()->user()['id']); });
+        $count = $trade->count();
         $filter = Arr::get($data, 'filter');
         if ($filter)
             $trade->where('status', $filter);
-        return response()->json(TradeResource::collection($trade->get()));
+        return response()->json([
+            'data' => TradeResource::collection($trade->offset(Arr::get($data, 'offset', 0))->limit(Arr::get($data, 'limit', 50))->get()),
+            'meta' => [
+                'total' => $count,
+                'offset' => (int) Arr::get($data, 'offset', 0),
+                'limit' => (int) Arr::get($data, 'limit', 50)
+            ]
+        ]);
     }
 
     /**
@@ -168,8 +194,8 @@ class TradeController extends Controller
         if (auth()->user()['id'] == $offer->user['id'])
             return response()->json(['error' => 'You can\'t initiate a trade with your own offer' ], 400);
         // Check if seller has sufficient balance for trade
-//        if (AddressController::getAddressBalance($coin) < round(Arr::get($data, 'amount') / $offer['price'], 9))
-//            return response()->json(["message" => 'Seller doesn\'t have sufficient wallet balance for trade'], 400);
+       if (AddressController::getAddressBalance($coin) < round(Arr::get($data, 'amount') / $offer['price'], 9))
+           return response()->json(["message" => 'Seller doesn\'t have sufficient wallet balance for trade'], 400);
         // Get trade fee
         $feeInUSD = Setting::first()['fee'];
         // Create trade
@@ -394,6 +420,13 @@ class TradeController extends Controller
             'message' => 'Trade cancelled successfully',
             'data' => new TradeResource($trade)
         ]);
+    }
+
+    public static function settleTrade()
+    {
+        // Send charges to admin
+
+        // Send remainder to buyer
     }
 
     public static function getUserTrades(): \Illuminate\Http\Resources\Json\AnonymousResourceCollection

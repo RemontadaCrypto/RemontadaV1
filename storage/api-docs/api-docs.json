@@ -252,8 +252,8 @@
                 "tags": [
                     "Auth"
                 ],
-                "summary": "Get Authenticated User Informations",
-                "operationId": "get authenticated user informations",
+                "summary": "Get Authenticated User Information",
+                "operationId": "get authenticated user information",
                 "responses": {
                     "200": {
                         "description": "Success",
@@ -551,6 +551,22 @@
                         "schema": {
                             "type": "string"
                         }
+                    },
+                    {
+                        "name": "offset",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
                     }
                 ],
                 "responses": {
@@ -581,6 +597,24 @@
                 ],
                 "summary": "Get authenticated user all offers",
                 "operationId": "get authenticated user all offers",
+                "parameters": [
+                    {
+                        "name": "offset",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "Success",
@@ -840,6 +874,22 @@
                         "required": false,
                         "schema": {
                             "type": "string"
+                        }
+                    },
+                    {
+                        "name": "offset",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
                         }
                     }
                 ],
