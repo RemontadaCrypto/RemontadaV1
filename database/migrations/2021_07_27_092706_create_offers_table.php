@@ -17,8 +17,7 @@ class CreateOffersTable extends Migration
             $table->id();
             $table->foreignId('user_id');
             $table->foreignId('coin_id');
-            $table->enum('price_type', ['fixed', 'relative']);
-            $table->double('price', 20, 2);
+            $table->enum('type', ['naira', 'dollar']);
             $table->double('rate')->nullable();
             $table->double('min', 20, 2);
             $table->double('max', 20, 2);

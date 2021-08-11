@@ -211,18 +211,10 @@ class OfferController extends Controller
      *      )
      *   ),
      *     @OA\Parameter(
-     *      name="price_type",
+     *      name="type",
      *      in="query",
      *      required=true,
-     *      description="fixed or relative",
-     *      @OA\Schema(
-     *          type="string"
-     *      )
-     *   ),
-     *     @OA\Parameter(
-     *      name="price",
-     *      in="query",
-     *      required=false,
+     *      description="naira or dollar",
      *      @OA\Schema(
      *          type="string"
      *      )
@@ -246,7 +238,7 @@ class OfferController extends Controller
      *     @OA\Parameter(
      *      name="rate",
      *      in="query",
-     *      required=false,
+     *      required=true,
      *      @OA\Schema(
      *          type="string"
      *      )
@@ -271,14 +263,13 @@ class OfferController extends Controller
     public function store(): \Illuminate\Http\JsonResponse
     {
         // Set data and validate request
-        $data = Arr::only(request()->all(), ['coin', 'price_type', 'price', 'min', 'max', 'rate']);
+        $data = Arr::only(request()->all(), ['coin', 'type', 'min', 'max', 'rate']);
         $validator = Validator::make($data, [
             'coin' => ['required', 'string'],
-            'price_type' => ['required', 'string', 'in:fixed,relative'],
-            'price' => ['required_if:price_type,fixed', 'numeric'],
+            'type' => ['required', 'string', 'in:naira,dollar'],
             'min' => ['required', 'numeric', 'lt:max'],
             'max' => ['required', 'numeric', 'gt:min'],
-            'rate' => ['required_if:price_type,relative', 'numeric']
+            'rate' => ['required', 'numeric']
         ]);
         if ($validator->fails())
             return response()->json($validator->getMessageBag(), 422);
@@ -289,12 +280,6 @@ class OfferController extends Controller
         // Verify user wallet balance
 
         // Create offer
-        if (Arr::get($data, 'price_type') == 'fixed'){
-            Arr::set($data, 'rate', Setting::first()['rate']);
-        } else {
-            Arr::set($data, 'price', round($coin['price'] * Arr::get($data, 'rate'), 2));
-        }
-
         Arr::forget($data, ['coin']);
         Arr::set($data, 'user_id', auth()->user()['id']);
         $offer = $coin->offers()->create($data);
@@ -321,18 +306,10 @@ class OfferController extends Controller
      *      )
      *   ),
      *     @OA\Parameter(
-     *      name="price_type",
+     *      name="type",
      *      in="query",
      *      required=true,
-     *      description="fixed or relative",
-     *      @OA\Schema(
-     *          type="string"
-     *      )
-     *   ),
-     *     @OA\Parameter(
-     *      name="price",
-     *      in="query",
-     *      required=false,
+     *      description="naira or dollar",
      *      @OA\Schema(
      *          type="string"
      *      )
@@ -356,7 +333,7 @@ class OfferController extends Controller
      *     @OA\Parameter(
      *      name="rate",
      *      in="query",
-     *      required=false,
+     *      required=true,
      *      @OA\Schema(
      *          type="string"
      *      )
@@ -377,25 +354,19 @@ class OfferController extends Controller
     public function update(Offer $offer): \Illuminate\Http\JsonResponse
     {
         // Set data and validate request
-        $data = Arr::only(request()->all(), ['price_type', 'price', 'min', 'max', 'rate']);
+        $data = Arr::only(request()->all(), ['coin', 'type', 'min', 'max', 'rate']);
         $validator = Validator::make($data, [
-            'price_type' => ['required', 'string', 'in:fixed,relative'],
-            'price' => ['required_if:price_type,fixed', 'numeric'],
+            'coin' => ['required', 'string'],
+            'type' => ['required', 'string', 'in:naira,dollar'],
             'min' => ['required', 'numeric', 'lt:max'],
             'max' => ['required', 'numeric', 'gt:min'],
-            'rate' => ['required_if:price_type,relative', 'numeric']
+            'rate' => ['required', 'numeric']
         ]);
         if ($validator->fails())
             return response()->json($validator->getMessageBag(), 422);
         // Verify user wallet balance
 
         // Create offer
-        if (Arr::get($data, 'price_type') == 'fixed'){
-            Arr::set($data, 'rate', Setting::first()['rate']);
-        } else {
-            Arr::set($data, 'price', round($offer->coin['price'] * Arr::get($data, 'rate'), 2));
-        }
-
         Arr::forget($data, ['coin']);
         Arr::set($data, 'user_id', auth()->user()['id']);
         $offer->update($data);

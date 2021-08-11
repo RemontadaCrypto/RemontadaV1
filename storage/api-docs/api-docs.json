@@ -681,18 +681,10 @@
                         }
                     },
                     {
-                        "name": "price_type",
+                        "name": "type",
                         "in": "query",
-                        "description": "fixed or relative",
+                        "description": "naira or dollar",
                         "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "price",
-                        "in": "query",
-                        "required": false,
                         "schema": {
                             "type": "string"
                         }
@@ -716,7 +708,7 @@
                     {
                         "name": "rate",
                         "in": "query",
-                        "required": false,
+                        "required": true,
                         "schema": {
                             "type": "string"
                         }
@@ -761,18 +753,10 @@
                         }
                     },
                     {
-                        "name": "price_type",
+                        "name": "type",
                         "in": "query",
-                        "description": "fixed or relative",
+                        "description": "naira or dollar",
                         "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "price",
-                        "in": "query",
-                        "required": false,
                         "schema": {
                             "type": "string"
                         }
@@ -796,7 +780,7 @@
                     {
                         "name": "rate",
                         "in": "query",
-                        "required": false,
+                        "required": true,
                         "schema": {
                             "type": "string"
                         }
