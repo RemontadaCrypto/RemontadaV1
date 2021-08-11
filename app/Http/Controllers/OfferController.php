@@ -285,7 +285,7 @@ class OfferController extends Controller
         $offer = $coin->offers()->create($data);
         return response()->json([
             'message' => 'Offer created successfully',
-            'data' => $offer
+            'data' => new OfferResource($offer)
         ]);
     }
 
@@ -356,7 +356,6 @@ class OfferController extends Controller
         // Set data and validate request
         $data = Arr::only(request()->all(), ['coin', 'type', 'min', 'max', 'rate']);
         $validator = Validator::make($data, [
-            'coin' => ['required', 'string'],
             'type' => ['required', 'string', 'in:naira,dollar'],
             'min' => ['required', 'numeric', 'lt:max'],
             'max' => ['required', 'numeric', 'gt:min'],
@@ -366,13 +365,13 @@ class OfferController extends Controller
             return response()->json($validator->getMessageBag(), 422);
         // Verify user wallet balance
 
-        // Create offer
+        // update offer
         Arr::forget($data, ['coin']);
         Arr::set($data, 'user_id', auth()->user()['id']);
         $offer->update($data);
         return response()->json([
             'message' => 'Offer updated successfully',
-            'data' => $offer
+            'data' => new OfferResource($offer)
         ]);
     }
 
@@ -411,6 +410,8 @@ class OfferController extends Controller
     public function destroy(Offer $offer): \Illuminate\Http\JsonResponse
     {
         // Check if offer has pending trade
+        if ($offer->trades()->count())
+            return response()->json(['error' => 'Offer can\'t be deleted, trade already associated']);
         $offer->delete();
         return response()->json(['message' => 'Offer deleted successfully']);
     }

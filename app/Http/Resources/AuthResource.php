@@ -24,9 +24,7 @@ class AuthResource extends JsonResource
             'phone' => $this['phone'],
             'email_verified' => !is_null($this['email_verified_at']),
             'joined_date' => $this['created_at'],
-            'addresses' => AddressController::getAllAddresses(),
-            'trades' => TradeController::getUserTrades(),
-            'offers' => OfferResource::collection($this['offers'])
+            'addresses' => AddressController::getAllAddresses()
         ];
     }
 }

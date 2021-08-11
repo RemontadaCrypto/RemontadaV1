@@ -181,6 +181,13 @@ class TradeController extends Controller
         if (!$coin)
             return response()->json(['error' => 'Coin not found or not supported'], 400);
         $offer = Offer::find(Arr::get($data, 'offer_id'));
+        if ($offer['type'] == 'naira') {
+            $amountInNGN = Arr::get($data, 'amount');
+            $amountInUSD = Arr::get($data, 'amount') / $offer['rate'];
+        } else {
+            $amountInUSD = Arr::get($data, 'amount');
+            $amountInNGN = Arr::get($data, 'amount') * $offer['rate'];
+        }
         // Check if offer exists
         if (!$offer)
             return response()->json(['error' => 'Offer not found'], 400);
@@ -194,7 +201,7 @@ class TradeController extends Controller
         if (auth()->user()['id'] == $offer->user['id'])
             return response()->json(['error' => 'You can\'t initiate a trade with your own offer' ], 400);
         // Check if seller has sufficient balance for trade
-       if (AddressController::getAddressBalance($coin) < round(Arr::get($data, 'amount') / $offer['price'], 9))
+        if (AddressController::getAddressBalance($coin) < round($amountInUSD / $coin['price'], 9))
            return response()->json(["message" => 'Seller doesn\'t have sufficient wallet balance for trade'], 400);
         // Get trade fee
         $feeInUSD = Setting::first()['fee'];
@@ -204,9 +211,9 @@ class TradeController extends Controller
             'coin_id' => $coin['id'],
             'buyer_id' => auth()->user()['id'],
             'seller_id' => $offer->user['id'],
-            'amount_in_ngn' => Arr::get($data, 'amount'),
-            'amount_in_coin' => round(Arr::get($data, 'amount') / $offer['price'], 9),
-            'amount_in_usd' => round(Arr::get($data, 'amount') / $offer['rate'], 2),
+            'amount_in_ngn' => round($amountInNGN, 2),
+            'amount_in_coin' => round($amountInUSD / $coin['price'], 9),
+            'amount_in_usd' => round($amountInUSD, 2),
             'fee_in_ngn' => $feeInUSD * $offer['rate'],
             'fee_in_coin' => round($feeInUSD / $coin['price'], 9),
             'fee_in_usd' => $feeInUSD

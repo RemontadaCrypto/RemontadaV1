@@ -23,7 +23,6 @@ class CreateOffersTable extends Migration
             $table->double('max', 20, 2);
             $table->enum('status', ['active', 'running', 'closed'])->default('active');
             $table->timestamps();
-            $table->softDeletes();
         });
     }
 
