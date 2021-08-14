@@ -6,6 +6,7 @@ use App\Http\Traits\helpers;
 use App\Models\Address;
 use App\Models\Coin;
 
+use App\Models\Trade;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Http;
 
@@ -104,6 +105,57 @@ class AddressController extends Controller
             'X-API-Key' => env('CRYPTO_API_KEY')
         ])->get(env('CRYPTO_API_BASE_URL').'/'.$data['coin'].'/'.$data['network'].'/address/'.$data['address'])->json();
         return number_format($res['payload']['balance'], 8) ?? null;
+    }
+
+    public static function getAddressLockedBalance($coin): float
+    {
+        $lockedBalance = 0;
+        $activeOffers = auth()->user()->offers()->where('coin_id', $coin['id'])->where('status', 'active')->get();
+        foreach ($activeOffers as $offer) {
+            $lockedBalance += $offer->getMaxPriceInCoin();
+        }
+        return round($lockedBalance, 9);
+    }
+
+    public static function getAddressLockedBalanceExcludingSingleOffer($offer): float
+    {
+        $lockedBalance = 0;
+        $activeOffers = auth()->user()->offers()
+                                        ->where('id', '!=', $offer['id'])
+                                        ->where('coin_id', $offer['coin']['id'])
+                                        ->where('status', 'active')
+                                        ->get();
+        foreach ($activeOffers as $offer) {
+            $lockedBalance += $offer->getMaxPriceInCoin();
+        }
+        return round($lockedBalance, 9);
+    }
+
+    public static function getAddressRunningTradesAmountByOffer($offer): float
+    {
+        $runningTradesBalance = 0;
+        $activeTrades = $offer->trades()->where('status', '!=', 'cancelled')
+                                      ->where('coin_released', false)
+                                      ->get();
+        foreach ($activeTrades as $trade) {
+            $runningTradesBalance += $trade['amount_in_coin'];
+        }
+        return round($runningTradesBalance, 9);
+    }
+
+    public static function getAddressWithdrawAbleBalance($coin): float
+    {
+        return round(max(self::getAddressBalance($coin) - self::getAddressLockedBalance($coin), 0), 9);
+    }
+
+    public static function getAddressWithdrawAbleBalanceExcludingSingleOffer($offer): float
+    {
+        return round(max(self::getAddressBalance($offer['coin']) - self::getAddressLockedBalanceExcludingSingleOffer($offer), 0), 9);
+    }
+
+    public static function getAddressTradeAbleBalance($offer): float
+    {
+        return round(max($offer->getMaxPriceInCoin() - self::getAddressRunningTradesAmountByOffer($offer), 0), 9);
     }
 
     protected static function generateAddressByShortName($user, $coin)

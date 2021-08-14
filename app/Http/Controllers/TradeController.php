@@ -71,7 +71,7 @@ class TradeController extends Controller
         ]);
         if ($validator->fails())
             return response()->json($validator->getMessageBag(), 422);
-        $trade = Trade::where(function ($q) { $q->where('seller_id', auth()->user()['id'])->orWhere('buyer_id', auth()->user()['id']); });
+        $trade = Trade::query()->where(function ($q) { $q->where('seller_id', auth()->user()['id'])->orWhere('buyer_id', auth()->user()['id']); });
         $count = $trade->count();
         $filter = Arr::get($data, 'filter');
         if ($filter)
@@ -181,13 +181,6 @@ class TradeController extends Controller
         if (!$coin)
             return response()->json(['error' => 'Coin not found or not supported'], 400);
         $offer = Offer::find(Arr::get($data, 'offer_id'));
-        if ($offer['type'] == 'naira') {
-            $amountInNGN = Arr::get($data, 'amount');
-            $amountInUSD = Arr::get($data, 'amount') / $offer['rate'];
-        } else {
-            $amountInUSD = Arr::get($data, 'amount');
-            $amountInNGN = Arr::get($data, 'amount') * $offer['rate'];
-        }
         // Check if offer exists
         if (!$offer)
             return response()->json(['error' => 'Offer not found'], 400);
@@ -201,10 +194,17 @@ class TradeController extends Controller
         if (auth()->user()['id'] == $offer->user['id'])
             return response()->json(['error' => 'You can\'t initiate a trade with your own offer' ], 400);
         // Check if seller has sufficient balance for trade
-        if (AddressController::getAddressBalance($coin) < round($amountInUSD / $coin['price'], 9))
+        if ($offer['type'] == 'naira') {
+            $amountInNGN = Arr::get($data, 'amount');
+            $amountInUSD = Arr::get($data, 'amount') / $offer['rate'];
+        } else {
+            $amountInUSD = Arr::get($data, 'amount');
+            $amountInNGN = Arr::get($data, 'amount') * $offer['rate'];
+        }
+        if (AddressController::getAddressTradeAbleBalance($offer) < round($amountInUSD / $coin['price'], 9))
            return response()->json(["message" => 'Seller doesn\'t have sufficient wallet balance for trade'], 400);
         // Get trade fee
-        $feeInUSD = Setting::first()['fee'];
+        $feeInUSD = $amountInUSD * (env('PLATFORM_TRADE_CHARGE_PERCENT') / 100);
         // Create trade
         $trade = $offer->trades()->create([
             'ref' => Trade::generateTradeRef(),
@@ -218,7 +218,6 @@ class TradeController extends Controller
             'fee_in_coin' => round($feeInUSD / $coin['price'], 9),
             'fee_in_usd' => $feeInUSD
         ]);
-        $offer->update(['status' => 'running']);
         broadcast(new TradeInitiatedEvent($trade))->toOthers();
         return response()->json([
             'message' => 'Trade initiated successfully',
@@ -260,10 +259,13 @@ class TradeController extends Controller
      **/
     public function accept(Trade $trade): \Illuminate\Http\JsonResponse
     {
+        try {
+            $this->authorize('seller', $trade);
+        } catch (\Exception $e) {
+            return response()->json(['errors' => 'This action is unauthorized'], 403);
+        }
         if ($trade['status'] != 'pending')
             return response()->json(['error' => 'Trade already '.$trade['status']], 400);
-        if (auth()->user()['id'] != $trade['seller_id'])
-            return response()->json(['error' => 'Action unauthorized'], 400);
         if ($trade['seller_trade_state'] != 0)
             return response()->json(['error' => 'Trade already running'], 400);
         $trade->update([
@@ -310,10 +312,13 @@ class TradeController extends Controller
      **/
     public function makePayment(Trade $trade): \Illuminate\Http\JsonResponse
     {
+        try {
+            $this->authorize('buyer', $trade);
+        } catch (\Exception $e) {
+            return response()->json(['errors' => 'This action is unauthorized'], 403);
+        }
         if ($trade['status'] != 'pending')
             return response()->json(['error' => 'Trade already '.$trade['status']], 400);
-        if (auth()->user()['id'] != $trade['buyer_id'])
-            return response()->json(['error' => 'Action unauthorized'], 400);
         if ($trade['buyer_trade_state'] != 1 || $trade['seller_trade_state'] != 1)
             return response()->json(['error' => 'Action not allowed, trade not yet accepted by seller'], 400);
         $trade->update([
@@ -360,17 +365,21 @@ class TradeController extends Controller
      **/
     public function confirmPayment(Trade $trade): \Illuminate\Http\JsonResponse
     {
+        try {
+            $this->authorize('seller', $trade);
+        } catch (\Exception $e) {
+            return response()->json(['errors' => 'This action is unauthorized'], 403);
+        }
         if ($trade['status'] != 'pending')
             return response()->json(['error' => 'Trade already '.$trade['status']], 400);
-        if (auth()->user()['id'] != $trade['seller_id'])
-            return response()->json(['error' => 'Action unauthorized'], 400);
         if ($trade['buyer_trade_state'] != 2 || $trade['seller_trade_state'] != 1)
             return response()->json(['error' => 'Action not allowed, payment made request not sent by buyer'], 400);
         $trade->update([
             'seller_trade_state' => 2,
             'status' => 'successful'
         ]);
-        $trade->offer()->update(['status' => 'closed']);
+        self::cancelOrUpdateOffer($trade);
+        self::settleTrade($trade);
         broadcast(new PaymentConfirmedEvent($trade))->toOthers();
         return response()->json([
             'message' => 'Payment confirmed successfully, trade successful',
@@ -412,10 +421,13 @@ class TradeController extends Controller
      **/
     public function cancel(Trade $trade): \Illuminate\Http\JsonResponse
     {
+        try {
+            $this->authorize('buyer', $trade);
+        } catch (\Exception $e) {
+            return response()->json(['errors' => 'This action is unauthorized'], 403);
+        }
         if ($trade['status'] != 'pending')
             return response()->json(['error' => 'Trade already '.$trade['status']], 400);
-        if (auth()->user()['id'] != $trade['buyer_id'])
-            return response()->json(['error' => 'Action unauthorized'], 400);
         if ($trade['seller_trade_state'] == 2)
             return response()->json(['error' => 'Action not allowed, trade already successful'], 400);
         $trade->update([
@@ -429,11 +441,30 @@ class TradeController extends Controller
         ]);
     }
 
-    public static function settleTrade()
+    public static function settleTrade($trade)
     {
         // Send charges to admin
 
         // Send remainder to buyer
+    }
+
+    public static function cancelOrUpdateOffer($trade)
+    {
+        $offer = $trade->offer;
+        if ($offer->isClosableByTrade($trade)) {
+            $balance = AddressController::getAddressWithdrawAbleBalanceExcludingSingleOffer($offer);
+            if ($balance < $offer->getMaxPriceInCoin()) {
+                $balanceInUSD = $balance * $offer['coin']['price'];
+                $balanceInNGN = $balanceInUSD * $offer['rate'];
+                if ($offer['type'] == 'naira') {
+                    if ($balanceInNGN > $offer['min']) $offer->update(['max' => $balanceInNGN]);
+                    else $offer->update(['status' => 'closed']);
+                } else {
+                    if ($balanceInUSD > $offer['min']) $offer->update(['max' => $balanceInUSD]);
+                    else $offer->update(['status' => 'closed']);
+                }
+            }
+        }
     }
 
     public static function getUserTrades(): \Illuminate\Http\Resources\Json\AnonymousResourceCollection

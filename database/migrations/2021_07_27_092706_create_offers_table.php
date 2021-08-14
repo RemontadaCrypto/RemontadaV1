@@ -21,7 +21,7 @@ class CreateOffersTable extends Migration
             $table->double('rate')->nullable();
             $table->double('min', 20, 2);
             $table->double('max', 20, 2);
-            $table->enum('status', ['active', 'running', 'closed'])->default('active');
+            $table->enum('status', ['active', 'closed'])->default('active');
             $table->timestamps();
         });
     }

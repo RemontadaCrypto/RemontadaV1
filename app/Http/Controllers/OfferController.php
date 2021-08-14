@@ -278,7 +278,11 @@ class OfferController extends Controller
         if (!$coin)
             return response()->json(['error' => 'Coin not found or not supported'], 400);
         // Verify user wallet balance
-
+        $coinAmountNeeded = Offer::getMaxPriceInCoinByData($coin, $data);
+        if (AddressController::getAddressWithdrawAbleBalance($coin) < $coinAmountNeeded)
+           return response()->json([
+               "message" => 'You don\'t have sufficient wallet balance to create this offer, at least a balance of '.number_format($coinAmountNeeded, 9).' '.strtoupper($coin['short_name']).' is required'
+            ], 400);
         // Create offer
         Arr::forget($data, ['coin']);
         Arr::set($data, 'user_id', auth()->user()['id']);
@@ -353,8 +357,13 @@ class OfferController extends Controller
      **/
     public function update(Offer $offer): \Illuminate\Http\JsonResponse
     {
+        try {
+            $this->authorize('owner', $offer);
+        } catch (\Exception $e) {
+            return response()->json(['errors' => 'This action is unauthorized'], 403);
+        }
         // Set data and validate request
-        $data = Arr::only(request()->all(), ['coin', 'type', 'min', 'max', 'rate']);
+        $data = Arr::only(request()->all(), ['type', 'min', 'max', 'rate']);
         $validator = Validator::make($data, [
             'type' => ['required', 'string', 'in:naira,dollar'],
             'min' => ['required', 'numeric', 'lt:max'],
@@ -364,11 +373,17 @@ class OfferController extends Controller
         if ($validator->fails())
             return response()->json($validator->getMessageBag(), 422);
         // Verify user wallet balance
-
+        $oldCoinAmount = $offer->getMaxPriceInCoin();
+        $newCoinAmount = Offer::getMaxPriceInCoinByData($offer['coin'], $data);
+        $additionalCoinAmountNeeded = $newCoinAmount - $oldCoinAmount;
+        $lockedBalance = AddressController::getAddressLockedBalance($offer['coin']);
+        if ($additionalCoinAmountNeeded > 0)
+            if (AddressController::getAddressWithdrawAbleBalance($offer['coin']) < $additionalCoinAmountNeeded)
+                return response()->json([
+                    "message" => 'You don\'t have sufficient wallet balance to update this offer, at least a balance of '.number_format($lockedBalance + $additionalCoinAmountNeeded, 9).' '.strtoupper($offer['coin']['short_name']).' is required'
+                ], 400);
         // update offer
-        Arr::forget($data, ['coin']);
-        Arr::set($data, 'user_id', auth()->user()['id']);
-        $offer->update($data);
+        $offer->update(Arr::only($data, ['type', 'min', 'max', 'rate']));
         return response()->json([
             'message' => 'Offer updated successfully',
             'data' => new OfferResource($offer)
@@ -409,6 +424,11 @@ class OfferController extends Controller
      **/
     public function destroy(Offer $offer): \Illuminate\Http\JsonResponse
     {
+        try {
+            $this->authorize('owner', $offer);
+        } catch (\Exception $e) {
+            return response()->json(['errors' => 'This action is unauthorized'], 403);
+        }
         // Check if offer has pending trade
         if ($offer->trades()->count())
             return response()->json(['error' => 'Offer can\'t be deleted, trade already associated']);
