@@ -19,11 +19,21 @@ class Transaction extends Model
 
     public function getPartyAttribute($value)
     {
-        $this->attributes['party'] = Crypt::decrypt($value);
+        return Crypt::decrypt($value);
     }
 
-    public function coin()
+    public function coin(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
-        $this->belongsTo(Coin::class);
+        return $this->belongsTo(Coin::class);
+    }
+
+    public function trade(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Trade::class);
+    }
+
+    public function user(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(User::class);
     }
 }

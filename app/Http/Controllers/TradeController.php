@@ -8,12 +8,11 @@ use App\Events\TradeCancelledEvent;
 use App\Events\PaymentMadeEvent;
 use App\Events\PaymentConfirmedEvent;
 use App\Http\Resources\TradeResource;
+use App\Jobs\SendCustomEmailJob;
+use App\Jobs\SettleTradeJob;
 use App\Models\Coin;
 use App\Models\Offer;
-use App\Models\Setting;
 use App\Models\Trade;
-use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Validator;
 
@@ -378,8 +377,8 @@ class TradeController extends Controller
             'seller_trade_state' => 2,
             'status' => 'successful'
         ]);
-        self::cancelOrUpdateOffer($trade);
-        self::settleTrade($trade);
+        self::closeOrUpdateOffer($trade);
+        SettleTradeJob::dispatch($trade);
         broadcast(new PaymentConfirmedEvent($trade))->toOthers();
         return response()->json([
             'message' => 'Payment confirmed successfully, trade successful',
@@ -441,14 +440,47 @@ class TradeController extends Controller
         ]);
     }
 
-    public static function settleTrade($trade)
+    public static function sendCoinToBuyer($trade)
     {
-        // Send charges to admin
-
-        // Send remainder to buyer
+        $res = TransactionController::processCoinWithdrawal(
+            $trade['coin'],
+            $trade['seller'],
+            $trade['buyer']['address']['pth'],
+            $trade['amount_in_coin'] - $trade['fee_in_coin']
+        );
+        if (array_key_exists("payload", $res)) {
+            $trade->update(['coin_released' => true]);
+            $transaction = $trade->coin()->transactions()->create([
+                'type' => 'trade',
+                'amount' => $trade['amount_in_coin'] - $trade['fee_in_coin'],
+                'party' => $trade['buyer']['address']['pth']
+            ]);
+            // Dispatch relevant job
+            SendCustomEmailJob::dispatch($transaction['seller'], 'seller', $transaction);
+            SendCustomEmailJob::dispatch($transaction['buyer'], 'buyer', $transaction);
+        }
     }
 
-    public static function cancelOrUpdateOffer($trade)
+    public static function sendFeeToAdmin($trade)
+    {
+        $companyWalletAddress = '';
+        $res = TransactionController::processCoinWithdrawal(
+            $trade['coin'],
+            $trade['seller'],
+            $companyWalletAddress,
+            $trade['fee_in_coin']
+        );
+        if (array_key_exists("payload", $res)) {
+            $trade->update(['fee_released' => true]);
+            $trade->coin()->transactions()->create([
+                'type' => 'fee',
+                'amount' => $trade['fee_in_coin'],
+                'party' => $companyWalletAddress
+            ]);
+        }
+    }
+
+    public static function closeOrUpdateOffer($trade)
     {
         $offer = $trade->offer;
         if ($offer->isClosableByTrade($trade)) {

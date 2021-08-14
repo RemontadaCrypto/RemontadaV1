@@ -44,6 +44,13 @@ class SendCustomEmailJob implements ShouldQueue
         switch ($this->type) {
             case 'withdrawal' :
                 MailController::sendWithdrawalTransactionMail($this->user, $this->payload);
+                break;
+            case 'buyer' :
+                MailController::sendBuyerTransactionMail($this->user, $this->payload);
+                break;
+            case 'seller' :
+                MailController::sendSellerTransactionMail($this->user, $this->payload);
+                break;
         }
     }
 }

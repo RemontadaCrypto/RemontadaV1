@@ -391,6 +391,52 @@ class OfferController extends Controller
     }
 
     /**
+     * @OA\Put(
+     ** path="/offers/{offer}/close",
+     *   tags={"Offer"},
+     *   summary="Close offer",
+     *   operationId="close offer",
+     *   security={{ "apiAuth": {} }},
+     *   @OA\Parameter(
+     *      name="offer",
+     *      in="path",
+     *      required=true,
+     *      description="this is the offer ID",
+     *      @OA\Schema(
+     *          type="string"
+     *      )
+     *   ),
+     *    @OA\Response(
+     *      response=200,
+     *       description="Success",
+     *      @OA\MediaType(
+     *           mediaType="application/json",
+     *      )
+     *   ),
+     *   @OA\Response(
+     *      response=400,
+     *       description="Bad Request",
+     *      @OA\MediaType(
+     *           mediaType="application/json",
+     *      )
+     *   )
+     *)
+     **/
+    public function close(Offer $offer): \Illuminate\Http\JsonResponse
+    {
+        try {
+            $this->authorize('owner', $offer);
+        } catch (\Exception $e) {
+            return response()->json(['errors' => 'This action is unauthorized'], 403);
+        }
+        // Check if offer has pending trade
+        if ($offer->trades()->where('status',  'pending')->count() > 0)
+            return response()->json(['error' => 'Offer can\'t be closed, pending trade(s) associated']);
+        $offer->update(['status' => 'closed']);
+        return response()->json(['message' => 'Offer closed successfully']);
+    }
+
+    /**
      * @OA\Delete(
      ** path="/offers/{offer}/delete",
      *   tags={"Offer"},
@@ -430,7 +476,7 @@ class OfferController extends Controller
             return response()->json(['errors' => 'This action is unauthorized'], 403);
         }
         // Check if offer has pending trade
-        if ($offer->trades()->count())
+        if ($offer->trades()->count() > 0)
             return response()->json(['error' => 'Offer can\'t be deleted, trade already associated']);
         $offer->delete();
         return response()->json(['message' => 'Offer deleted successfully']);

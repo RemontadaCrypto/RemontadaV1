@@ -804,6 +804,45 @@
                 ]
             }
         },
+        "/offers/{offer}/close": {
+            "put": {
+                "tags": [
+                    "Offer"
+                ],
+                "summary": "Close offer",
+                "operationId": "close offer",
+                "parameters": [
+                    {
+                        "name": "offer",
+                        "in": "path",
+                        "description": "this is the offer ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {}
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "content": {
+                            "application/json": {}
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiAuth": []
+                    }
+                ]
+            }
+        },
         "/offers/{offer}/delete": {
             "delete": {
                 "tags": [

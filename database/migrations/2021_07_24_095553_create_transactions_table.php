@@ -15,9 +15,10 @@ class CreateTransactionsTable extends Migration
     {
         Schema::create('transactions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id');
             $table->foreignId('coin_id');
-            $table->enum('type', ['deposit', 'withdrawal']);
+            $table->foreignId('user_id')->nullable();
+            $table->foreignId('trade_id')->nullable();
+            $table->enum('type', ['trade', 'withdrawal', 'fee']);
             $table->decimal('amount', 20, 9);
             $table->text('party');
             $table->timestamps();

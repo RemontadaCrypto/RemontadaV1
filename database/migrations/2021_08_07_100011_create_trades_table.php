@@ -29,6 +29,7 @@ class CreateTradesTable extends Migration
             $table->integer('buyer_trade_state')->default(1);
             $table->integer('seller_trade_state')->default(0);
             $table->boolean('coin_released')->default(false);
+            $table->boolean('fee_released')->default(false);
             $table->enum('status', ['pending', 'cancelled', 'successful'])->default('pending');
             $table->timestamps();
         });

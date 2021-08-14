@@ -57,6 +57,7 @@ Route::group(['middleware' => 'api'], function () {
             Route::post('/store', [OfferController::class, 'store']);
             Route::get('/{offer}/show', [OfferController::class, 'show']);
             Route::put('/{offer}/update', [OfferController::class, 'update']);
+            Route::put('/{offer}/close', [OfferController::class, 'close']);
             Route::delete('/{offer}/delete', [OfferController::class, 'destroy']);
         });
         Route::group(['prefix' => 'trades'], function () {
