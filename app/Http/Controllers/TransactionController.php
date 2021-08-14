@@ -79,21 +79,21 @@ class TransactionController extends Controller
         }
 
         // Check if user has sufficient balance
-//        if (AddressController::getAddressWithdrawAbleBalance($coin) < Arr::get($data, 'amount')) {
-//            return response()->json(["message" => 'Insufficient wallet balance'], 400);
-//        }
+        if (AddressController::getAddressWithdrawAbleBalance($coin) < Arr::get($data, 'amount')) {
+            return response()->json(["message" => 'Insufficient wallet balance'], 400);
+        }
 
         // Find user address for this coin
         $sender = auth()->user()->getAddressByCoin($coin['id']);
 
         // Process transaction
-//        $res = self::processCoinWithdrawal($coin, $sender, Arr::get($data, 'address'), (float)Arr::get($data, 'amount'));
-//        // Check for success or error
-//        if (array_key_exists("meta", $res))
-//            if (array_key_exists("error", $res['meta']))
-//                if (array_key_exists("message", $res['meta']['error']))
-//                    return response()->json(["message" => $res['meta']['error']['message']], 400);
-//        if (array_key_exists("payload", $res)) {
+        $res = self::processCoinWithdrawal($coin, $sender, Arr::get($data, 'address'), (float)Arr::get($data, 'amount'));
+        // Check for success or error
+        if (array_key_exists("meta", $res))
+            if (array_key_exists("error", $res['meta']))
+                if (array_key_exists("message", $res['meta']['error']))
+                    return response()->json(["message" => $res['meta']['error']['message']], 400);
+        if (array_key_exists("payload", $res)) {
             $transaction = auth()->user()->transactions()->create([
                 'coin_id' => $coin['id'], 'type' => 'withdrawal',
                 'amount' => Arr::get($data, 'amount'),
@@ -102,8 +102,8 @@ class TransactionController extends Controller
             // Dispatch relevant job
             SendCustomEmailJob::dispatch(auth()->user(), 'withdrawal', $transaction);
             return response()->json(["message" => 'You have successfully sent ' . Arr::get($data, 'amount') . ' ' . strtoupper($coin['short_name']) . ' to ' . Arr::get($data, 'address')]);
-//        }
-//        return response()->json(["message" => 'An error occurred'], 400);
+        }
+        return response()->json(["message" => 'An error occurred'], 400);
     }
 
     /**
