@@ -217,7 +217,9 @@ class TradeController extends Controller
             'fee_in_coin' => round($feeInUSD / $coin['price'], 9),
             'fee_in_usd' => $feeInUSD
         ]);
+        // Broadcast and dispatch relevant jobs
         broadcast(new TradeInitiatedEvent($trade))->toOthers();
+        SendCustomEmailJob::dispatch($trade['seller'], 'trade-initiated', $trade);
         return response()->json([
             'message' => 'Trade initiated successfully',
             'data' => new TradeResource($trade)
@@ -270,7 +272,9 @@ class TradeController extends Controller
         $trade->update([
             'seller_trade_state' => 1
         ]);
+        // Broadcast and dispatch relevant jobs
         broadcast(new TradeAcceptedEvent($trade))->toOthers();
+        SendCustomEmailJob::dispatch($trade['buyer'], 'trade-accepted', $trade);
         return response()->json([
             'message' => 'Trade accepted successfully',
             'data' => new TradeResource($trade)
@@ -323,7 +327,9 @@ class TradeController extends Controller
         $trade->update([
             'buyer_trade_state' => 2
         ]);
+        // Broadcast and dispatch relevant jobs
         broadcast(new PaymentMadeEvent($trade))->toOthers();
+        SendCustomEmailJob::dispatch($trade['seller'], 'payment-made', $trade);
         return response()->json([
             'message' => 'Payment made request sent successfully',
             'data' => new TradeResource($trade)
@@ -377,9 +383,12 @@ class TradeController extends Controller
             'seller_trade_state' => 2,
             'status' => 'successful'
         ]);
+        // Process offer for closure or update
         self::closeOrUpdateOffer($trade);
+        // Broadcast and dispatch relevant jobs
         SettleTradeJob::dispatch($trade);
         broadcast(new PaymentConfirmedEvent($trade))->toOthers();
+        SendCustomEmailJob::dispatch($trade['buyer'], 'payment-confirmed', $trade);
         return response()->json([
             'message' => 'Payment confirmed successfully, trade successful',
             'data' => new TradeResource($trade)
@@ -432,7 +441,7 @@ class TradeController extends Controller
         $trade->update([
             'status' => 'cancelled'
         ]);
-        $trade->offer()->update(['status' => 'active']);
+        // Broadcast and dispatch relevant jobs
         broadcast(new TradeCancelledEvent($trade))->toOthers();
         return response()->json([
             'message' => 'Trade cancelled successfully',
@@ -442,40 +451,44 @@ class TradeController extends Controller
 
     public static function sendCoinToBuyer($trade)
     {
-        $res = TransactionController::processCoinWithdrawal(
-            $trade['coin'],
-            $trade['seller'],
-            $trade['buyer']['address']['pth'],
-            $trade['amount_in_coin'] - $trade['fee_in_coin']
-        );
-        if (array_key_exists("payload", $res)) {
-            $trade->update(['coin_released' => true]);
-            $transaction = $trade->coin()->transactions()->create([
-                'type' => 'trade',
-                'amount' => $trade['amount_in_coin'] - $trade['fee_in_coin'],
-                'party' => $trade['buyer']['address']['pth']
-            ]);
-            // Dispatch relevant job
-            SendCustomEmailJob::dispatch($transaction['seller'], 'seller', $transaction);
-            SendCustomEmailJob::dispatch($transaction['buyer'], 'buyer', $transaction);
+        if (!$trade['coin_released']) {
+            $res = TransactionController::processCoinWithdrawal(
+                $trade['coin'],
+                $trade['seller'],
+                $trade['buyer']['address']['pth'],
+                $trade['amount_in_coin'] - $trade['fee_in_coin']
+            );
+            if (array_key_exists("payload", $res)) {
+                $trade->update(['coin_released' => true]);
+                $transaction = $trade->coin()->transactions()->create([
+                    'type' => 'trade',
+                    'amount' => $trade['amount_in_coin'] - $trade['fee_in_coin'],
+                    'party' => $trade['buyer']['address']['pth']
+                ]);
+                // Dispatch relevant job
+                SendCustomEmailJob::dispatch($transaction['seller'], 'seller', $transaction);
+                SendCustomEmailJob::dispatch($transaction['buyer'], 'buyer', $transaction);
+            }
         }
     }
 
     public static function sendFeeToAdmin($trade)
     {
-        $res = TransactionController::processCoinWithdrawal(
-            $trade['coin'],
-            $trade['seller'],
-            $trade['coin']->getFeeDepositAddress(),
-            $trade['fee_in_coin']
-        );
-        if (array_key_exists("payload", $res)) {
-            $trade->update(['fee_released' => true]);
-            $trade->coin()->transactions()->create([
-                'type' => 'fee',
-                'amount' => $trade['fee_in_coin'],
-                'party' => $trade['coin']->getFeeDepositAddress()
-            ]);
+        if (!$trade['fee_released']) {
+            $res = TransactionController::processCoinWithdrawal(
+                $trade['coin'],
+                $trade['seller'],
+                $trade['coin']->getFeeDepositAddress(),
+                $trade['fee_in_coin']
+            );
+            if (array_key_exists("payload", $res)) {
+                $trade->update(['fee_released' => true]);
+                $trade->coin()->transactions()->create([
+                    'type' => 'fee',
+                    'amount' => $trade['fee_in_coin'],
+                    'party' => $trade['coin']->getFeeDepositAddress()
+                ]);
+            }
         }
     }
 
