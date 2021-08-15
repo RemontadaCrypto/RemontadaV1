@@ -443,6 +443,8 @@ class TradeController extends Controller
         ]);
         // Broadcast and dispatch relevant jobs
         broadcast(new TradeCancelledEvent($trade))->toOthers();
+        SendCustomEmailJob::dispatch($trade['buyer'], 'trade-cancelled-buyer', $trade);
+        SendCustomEmailJob::dispatch($trade['seller'], 'trade-cancelled-seller', $trade);
         return response()->json([
             'message' => 'Trade cancelled successfully',
             'data' => new TradeResource($trade)

@@ -34,7 +34,7 @@ class Trade extends Model
     public static function generateTradeRef(): int
     {
         do {
-            $ref = rand(10000000, 99999999);
+            $ref = rand(100000000000, 999999999999);
         } while (static::query()->where('ref', $ref)->count() > 0);
         return $ref;
     }

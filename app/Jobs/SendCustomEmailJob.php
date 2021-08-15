@@ -51,6 +51,24 @@ class SendCustomEmailJob implements ShouldQueue
             case 'seller' :
                 MailController::sendSellerTransactionMail($this->user, $this->payload);
                 break;
+            case 'trade-initiated' :
+                MailController::sendTradeInitiatedMail($this->user, $this->payload);
+                break;
+            case 'trade-accepted' :
+                MailController::sendTradeAcceptedMail($this->user, $this->payload);
+                break;
+            case 'payment-made' :
+                MailController::sendPaymentMadeMail($this->user, $this->payload);
+                break;
+            case 'payment-confirmed' :
+                MailController::sendPaymentConfirmedMail($this->user, $this->payload);
+                break;
+            case 'trade-cancelled-buyer' :
+                MailController::sendBuyerTradeCancelledMail($this->user, $this->payload);
+                break;
+            case 'trade-cancelled-seller' :
+                MailController::sendSellerTradeCancelledMail($this->user, $this->payload);
+                break;
         }
     }
 }
