@@ -23,6 +23,7 @@ class CreateCoinsTable extends Migration
             $table->double('market_cap', 30, 9);
             $table->double('volume', 30, 9);
             $table->double('price', 30, 9);
+            $table->timestamps();
         });
 
         $supportedCoins = ['BTC', 'ETH', 'BCH', 'LTC'];

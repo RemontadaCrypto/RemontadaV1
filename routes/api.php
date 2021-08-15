@@ -47,10 +47,6 @@ Route::group(['middleware' => 'api'], function () {
             Route::post('/{coin:short_name}/withdraw', [TransactionController::class, 'withdraw']);
             Route::get('/{coin:short_name}', [TransactionController::class, 'getTransactionByCoin']);
         });
-        Route::group(['prefix' => 'coins'], function () {
-            Route::get('/', [DefaultController::class, 'getCoins']);
-            Route::get('/{coin:short_name}/show', [DefaultController::class, 'showCoin']);
-        });
         Route::group(['prefix' => 'offers'], function () {
             Route::get('/', [OfferController::class, 'index']);
             Route::get('/user', [OfferController::class, 'userOffers']);
@@ -69,5 +65,10 @@ Route::group(['middleware' => 'api'], function () {
             Route::post('/{trade}/confirm-payment', [TradeController::class, 'confirmPayment']);
             Route::post('/{trade}/cancel', [TradeController::class, 'cancel']);
         });
+    });
+
+    Route::group(['prefix' => 'coins'], function () {
+        Route::get('/', [DefaultController::class, 'getCoins']);
+        Route::get('/{coin:short_name}/show', [DefaultController::class, 'showCoin']);
     });
 });

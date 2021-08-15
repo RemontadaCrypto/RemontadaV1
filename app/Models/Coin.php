@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Coin extends Model
 {
     use HasFactory;
+    protected $guarded = [];
 
     public function transactions(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
