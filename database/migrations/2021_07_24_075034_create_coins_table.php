@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\DefaultController;
 use App\Http\Controllers\SettingController;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -26,7 +27,7 @@ class CreateCoinsTable extends Migration
         });
 
         $supportedCoins = ['BTC', 'ETH', 'BCH', 'LTC'];
-        $coinsArr = SettingController::getSupportedCoinData($supportedCoins);
+        $coinsArr = DefaultController::getSupportedCoinData($supportedCoins);
         DB::table('coins')->insert($coinsArr);
     }
 

@@ -159,13 +159,17 @@ class TransactionController extends Controller
         $data = self::getRequestDataByCoin($coin);
 
         // Get transactions
-        $res = Http::withHeaders(self::getHeaders())
-            ->get(env('CRYPTO_API_BASE_URL').'/'.$data['coin'].'/'.$data['network'].'/address/'.$data['address'].'/basic/transactions?index='.$index.'&limit='.$limit)
-            ->json();
-        return response()->json(['data' => [
-            'transactions' => $res['payload'],
-            'meta' => $res['meta']
-        ]]);
+        try {
+            $res = Http::withHeaders(self::getHeaders())
+                ->get(env('CRYPTO_API_BASE_URL').'/'.$data['coin'].'/'.$data['network'].'/address/'.$data['address'].'/basic/transactions?index='.$index.'&limit='.$limit)
+                ->json();
+            return response()->json(['data' => [
+                'transactions' => $res['payload'],
+                'meta' => $res['meta']
+            ]]);
+        } catch (\Exception $e) {
+            return response()->json(["message" => 'An error occurred'], 400);
+        }
     }
 
     public static function processCoinWithdrawal($coin, $sender, $to, $amount)

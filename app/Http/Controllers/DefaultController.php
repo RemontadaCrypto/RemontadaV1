@@ -4,7 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Http\Resources\CoinResource;
 use App\Models\Coin;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 
 class DefaultController extends Controller
 {
@@ -57,5 +58,27 @@ class DefaultController extends Controller
     public function showCoin(Coin $coin): \Illuminate\Http\JsonResponse
     {
         return response()->json(new CoinResource($coin));
+    }
+
+    public static function getSupportedCoinData($supportedCoins): array
+    {
+        $coinArr = [];
+        $coins = Http::withHeaders([
+            'Content-type' => 'application/json',
+            'X-API-Key' => env('CRYPTO_API_KEY')
+        ])->get(env('CRYPTO_API_MAIN_BASE_URL').'/assets')->json()['payload'];
+        foreach ($coins as $coin) {
+            if (in_array($coin['originalSymbol'], $supportedCoins)) {
+                $coinArr[] = [
+                    'name' => $coin['name'],
+                    'slug' => $coin['slug'],
+                    'short_name' => Str::upper($coin['originalSymbol']),
+                    'market_cap' => $coin['marketCap'],
+                    'volume' => $coin['volume'],
+                    'price' => $coin['price']
+                ];
+            }
+        }
+        return $coinArr;
     }
 }
