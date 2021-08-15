@@ -3,14 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\OfferResource;
+use App\Http\Traits\helpers;
 use App\Models\Coin;
 use App\Models\Offer;
-use App\Models\Setting;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Validator;
 
 class OfferController extends Controller
 {
+    use helpers;
     /**
      * @OA\Get(
      ** path="/offers",
@@ -281,7 +282,7 @@ class OfferController extends Controller
         $coinAmountNeeded = Offer::getMaxPriceInCoinByData($coin, $data);
         if (AddressController::getAddressWithdrawAbleBalance($coin) < $coinAmountNeeded)
            return response()->json([
-               "message" => 'You don\'t have sufficient wallet balance to create this offer, at least a balance of '.number_format($coinAmountNeeded, 9).' '.strtoupper($coin['short_name']).' is required'
+               "message" => 'You don\'t have sufficient wallet balance to create this offer, at least a balance of '.self::getFormattedCoinAmount($coinAmountNeeded).' '.strtoupper($coin['short_name']).' is required'
             ], 400);
         // Create offer
         Arr::forget($data, ['coin']);
@@ -380,7 +381,7 @@ class OfferController extends Controller
         if ($additionalCoinAmountNeeded > 0)
             if (AddressController::getAddressWithdrawAbleBalance($offer['coin']) < $additionalCoinAmountNeeded)
                 return response()->json([
-                    "message" => 'You don\'t have sufficient wallet balance to update this offer, at least a balance of '.number_format($lockedBalance + $additionalCoinAmountNeeded, 9).' '.strtoupper($offer['coin']['short_name']).' is required'
+                    "message" => 'You don\'t have sufficient wallet balance to update this offer, at least a balance of '.self::getFormattedCoinAmount($lockedBalance + $additionalCoinAmountNeeded).' '.strtoupper($offer['coin']['short_name']).' is required'
                 ], 400);
         // update offer
         $offer->update(Arr::only($data, ['type', 'min', 'max', 'rate']));

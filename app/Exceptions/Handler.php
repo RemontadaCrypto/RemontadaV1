@@ -4,6 +4,7 @@ namespace App\Exceptions;
 
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Exceptions\ThrottleRequestsException;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
@@ -62,6 +63,9 @@ class Handler extends ExceptionHandler
             }
             if ($e instanceof AccessDeniedHttpException) {
                 return response()->json(['errors' => 'This action is unauthorized'], 403);
+            }
+            if ($e instanceof ConnectionException) {
+                return response()->json(['errors' => 'An error occurred'], 400);
             }
         }
         return parent::render($request, $e);

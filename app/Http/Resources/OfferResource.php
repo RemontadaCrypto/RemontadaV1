@@ -19,9 +19,9 @@ class OfferResource extends JsonResource
             'user' => new UserResource($this['user']),
             'coin' => new CoinResource($this['coin']),
             'type' => $this['type'],
-            'rate' => $this['rate'],
-            'min' => $this['min'],
-            'max' => $this['max'],
+            'rate' => (float) $this['rate'],
+            'min' => (float) $this['min'],
+            'max' => (float) $this['max'],
             'status' => $this['status'],
             'created' => $this['created_at']
         ];

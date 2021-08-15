@@ -16,7 +16,7 @@ class TradeResource extends JsonResource
     {
         return [
             'id' => $this['id'],
-            'ref' => $this['ref'],
+            'ref' => (string) $this['ref'],
             'coin' => new CoinResource($this['coin']),
             'offer' => new OfferResource($this['offer']),
             'buyer' => new UserResource($this['buyer']),

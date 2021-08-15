@@ -27,6 +27,6 @@ class Coin extends Model
 
     public function getFeeDepositAddress()
     {
-        return $this->platformAddress()['pth'];
+        return $this->platformAddress()->first()['pth'];
     }
 }

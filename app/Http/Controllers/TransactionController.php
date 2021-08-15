@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\AddressInvalidException;
 use App\Jobs\SendCustomEmailJob;
 use App\Models\Coin;
 use App\Http\Traits\helpers;
@@ -66,7 +67,7 @@ class TransactionController extends Controller
      *   )
      *)
      **/
-    public function withdraw(Coin $coin): \Illuminate\Http\JsonResponse
+    public function withdraw(Coin $coin)
     {
         // Set credentials and validate request
         $data = Arr::only(request()->all(), ['address', 'amount']);
@@ -172,13 +173,20 @@ class TransactionController extends Controller
         }
     }
 
+    /**
+     * @throws AddressInvalidException
+     */
     public static function processCoinWithdrawal($coin, $sender, $to, $amount)
     {
+        // Verify destination wallet is valid
+        if (!self::addressIsValidByCoin($coin, $to)) {
+            throw new AddressInvalidException();
+        }
         // Set network based on coin
         $sig = self::transactionSignature($sender['sig']);
-        $fee = self::getRecommendedTransactionFee();
+        $fee = self::getRecommendedTransactionFee($coin, $sender, $to, $amount);
         $data = self::getRequestDataByCoin($coin, $sender['pth'], $to, $sig, $amount, $fee);
-        // Process withdrawal
+        // Get transaction size
         return Http::withHeaders(self::getHeaders())
             ->post(env('CRYPTO_API_BASE_URL').'/'.$data['coin'].'/'.$data['network'].'/txs/'.$data['suffix'], $data['trxData'])
             ->json();
@@ -189,10 +197,33 @@ class TransactionController extends Controller
         return Crypt::decryptString($key);
     }
 
-    protected static function getRecommendedTransactionFee(): float
+    protected static function getRecommendedTransactionFee($coin, $sender, $to, $amount)
     {
-        // to do - calculate transaction fee
-         return 0.00008092; // btc
-//        return 0.00009758; // bch
+        $data = self::getRequestDataByCoin($coin, $sender['pth'], $to, null, $amount, 0.0000000);
+        // Get fee data
+        $feeData = Http::withHeaders(self::getHeaders())
+            ->get(env('CRYPTO_API_BASE_URL').'/'.$data['coin'].'/'.$data['network'].'/txs/fee')
+            ->json()['payload'];
+        // Get transaction size or gas limit
+        $trxFeeData = Http::withHeaders(self::getHeaders())
+            ->post(env('CRYPTO_API_BASE_URL').'/'.$data['coin'].'/'.$data['network'].'/txs/'.$data['feeEndpointType'], $data['trxSizeData'])
+            ->json()['payload'];
+        if ($coin['short_name'] == 'ETH') {
+            return [
+                'gasLimit' => $trxFeeData['gasLimit'],
+                'gasPrice' => $feeData['standard']
+            ];
+        } else {
+            return self::getFormattedCoinAmount($trxFeeData['tx_size_bytes'] * $feeData['standard_fee_per_byte']);
+        }
+    }
+
+    protected static function addressIsValidByCoin($coin, $address): bool
+    {
+        $data = self::getRequestDataByCoin($coin);
+        $res = Http::withHeaders(self::getHeaders())
+            ->get(env('CRYPTO_API_BASE_URL').'/'.$data['coin'].'/'.$data['network'].'/address/'.$address)
+            ->json();
+        return array_key_exists("payload", $res);
     }
 }

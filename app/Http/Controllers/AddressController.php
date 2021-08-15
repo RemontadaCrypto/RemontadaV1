@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\CoinResource;
 use App\Http\Traits\helpers;
 use App\Models\Coin;
 
@@ -36,12 +37,9 @@ class AddressController extends Controller
     {
         $balance = [];
         foreach (Coin::all() as $coin){
-            $address = auth()->user()->getAddressByCoin($coin['id'])['pth'] ?? null;
+            $balanceData = self::getAddressBalanceBreakdown($coin);
             $balance[] = [
-                $coin['short_name'] => [
-                    'address' => $address,
-                    'balance' => $address ? self::getAddressBalance($coin) : null
-                ]
+                $coin['short_name'] => $balanceData
             ];
         }
         return response()->json(['data' => $balance]);
@@ -78,11 +76,8 @@ class AddressController extends Controller
      **/
     public function getBalanceByCoin(Coin $coin): \Illuminate\Http\JsonResponse
     {
-        $address = auth()->user()->getAddressByCoin($coin['id'])['pth'] ?? null;
-        return response()->json(['data' => [
-            'address' => $address,
-            'balance' => $address ? self::getAddressBalance($coin) : null
-        ]]);
+        $balanceData = self::getAddressBalanceBreakdown($coin);
+        return response()->json(['data' => $balanceData]);
     }
 
     public static function generateWalletAddress($user){
@@ -102,7 +97,7 @@ class AddressController extends Controller
             'Content-type' => 'application/json',
             'X-API-Key' => env('CRYPTO_API_KEY')
         ])->get(env('CRYPTO_API_BASE_URL').'/'.$data['coin'].'/'.$data['network'].'/address/'.$data['address'])->json();
-        return number_format($res['payload']['balance'], 8) ?? null;
+        return self::getFormattedCoinAmount($res['payload']['balance']) ?? null;
     }
 
     public static function getAddressLockedBalance($coin): float
@@ -173,6 +168,21 @@ class AddressController extends Controller
                 'pth' => Crypt::encryptString($res['payload']['address']),
                 'sig' => Crypt::encryptString($res['payload'][$data['key']])
             ]);
+    }
+
+    public static function getAddressBalanceBreakdown($coin): array
+    {
+        $address = auth()->user()->getAddressByCoin($coin['id'])['pth'] ?? null;
+        $coinBalance = $address ? self::getAddressBalance($coin) : null;
+        $lockedBalance = self::getFormattedCoinAmount(self::getAddressLockedBalance($coin));
+        $withdrawAble = $coinBalance ? self::getFormattedCoinAmount(max($coinBalance - self::getAddressLockedBalance($coin), 0)) : null;
+        return [
+            'coin' => new CoinResource($coin),
+            'address' => $address,
+            'total' => $coinBalance,
+            'withdrawable' => $withdrawAble,
+            'locked' => $lockedBalance,
+        ];
     }
 
     public static function getAllAddresses(): array

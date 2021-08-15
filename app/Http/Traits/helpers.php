@@ -11,6 +11,11 @@ trait helpers {
         ];
     }
 
+    public static function getFormattedCoinAmount($number): string
+    {
+        return implode('',explode(',',number_format($number, 9)));
+    }
+
     public static function getRequestDataByCoin($coin, $from = null, $to = null, $sig = null, $amount = null, $fee = null): array
     {
         if ($coin['short_name'] == 'ETH') {
@@ -20,11 +25,17 @@ trait helpers {
             $trxData = [
                 "fromAddress" =>  $from,
                 "toAddress" => $to,
-                "gasPrice" => 56000000000,
-                "gasLimit" => 21000,
-                "value" => round($amount, 8),
+                "gasPrice" => $fee['gasPrice'] ?? null,
+                "gasLimit" => $fee['gasLimit'] ?? null,
+                "value" => $fee ? round($amount - ($fee['gasPrice'] * $fee['gasLimit'] * pow(10,-9)), 9) : $amount,
                 "privateKey" => $sig
             ];
+            $trxSizeData = [
+                "fromAddress" =>  $trxData['fromAddress'],
+                "toAddress" => $trxData['toAddress'],
+                "value" => $trxData['value'],
+            ];
+            $feeEndpointType = "gas";
         } else {
             $network = env('CRYPTO_NETWORK_1');
             $suffix = 'new';
@@ -34,24 +45,26 @@ trait helpers {
                     "inputs" => [
                         [
                             "address" => $from,
-                            "value" => round(($amount - $fee), 8)
+                            "value" => round(($amount - $fee), 9)
                         ]
                     ],
                     "outputs" => [
                         [
                             "address" => $to,
-                            "value" => round(($amount - $fee), 8)
+                            "value" => round(($amount - $fee), 9)
                         ]
                     ],
                     "fee" => [
                         "address" => $from,
-                        "value" =>  round($fee, 8)
+                        "value" =>  round($fee, 9)
                     ]
                 ],
                 "wifs" => [
                     $sig
                 ]
             ];
+            $trxSizeData = $trxData['createTx'];
+            $feeEndpointType = "size";
         }
         $address = null;
         if (auth()->user()) {
@@ -61,6 +74,8 @@ trait helpers {
             'network' => $network,
             'suffix' => $suffix,
             'trxData' => $trxData,
+            'trxSizeData' => $trxSizeData,
+            'feeEndpointType' => $feeEndpointType,
             'key' => $key,
             'coin' => strtolower($coin['short_name']),
             'address' => $address

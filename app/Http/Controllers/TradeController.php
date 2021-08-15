@@ -8,6 +8,7 @@ use App\Events\TradeCancelledEvent;
 use App\Events\PaymentMadeEvent;
 use App\Events\PaymentConfirmedEvent;
 use App\Http\Resources\TradeResource;
+use App\Http\Traits\helpers;
 use App\Jobs\SendCustomEmailJob;
 use App\Jobs\SettleTradeJob;
 use App\Models\Coin;
@@ -18,6 +19,7 @@ use Illuminate\Support\Facades\Validator;
 
 class TradeController extends Controller
 {
+    use helpers;
     /**
      * @OA\Get(
      ** path="/trades/user",
@@ -456,15 +458,15 @@ class TradeController extends Controller
         if (!$trade['coin_released']) {
             $res = TransactionController::processCoinWithdrawal(
                 $trade['coin'],
-                $trade['seller'],
-                $trade['buyer']['address']['pth'],
-                $trade['amount_in_coin'] - $trade['fee_in_coin']
+                $trade['seller']->getAddressByCoin($trade['coin']['id']),
+                $trade['buyer']->getAddressByCoin($trade['coin']['id'])['pth'],
+                self::getFormattedCoinAmount($trade['amount_in_coin'] - $trade['fee_in_coin'])
             );
             if (array_key_exists("payload", $res)) {
                 $trade->update(['coin_released' => true]);
                 $transaction = $trade->coin()->transactions()->create([
                     'type' => 'trade',
-                    'amount' => $trade['amount_in_coin'] - $trade['fee_in_coin'],
+                    'amount' => self::getFormattedCoinAmount($trade['amount_in_coin'] - $trade['fee_in_coin']),
                     'party' => $trade['buyer']['address']['pth']
                 ]);
                 // Dispatch relevant job
@@ -479,15 +481,15 @@ class TradeController extends Controller
         if (!$trade['fee_released']) {
             $res = TransactionController::processCoinWithdrawal(
                 $trade['coin'],
-                $trade['seller'],
+                $trade['seller']->getAddressByCoin($trade['coin']['id']),
                 $trade['coin']->getFeeDepositAddress(),
-                $trade['fee_in_coin']
+                self::getFormattedCoinAmount($trade['fee_in_coin'])
             );
             if (array_key_exists("payload", $res)) {
                 $trade->update(['fee_released' => true]);
                 $trade->coin()->transactions()->create([
                     'type' => 'fee',
-                    'amount' => $trade['fee_in_coin'],
+                    'amount' => self::getFormattedCoinAmount($trade['fee_in_coin']),
                     'party' => $trade['coin']->getFeeDepositAddress()
                 ]);
             }
