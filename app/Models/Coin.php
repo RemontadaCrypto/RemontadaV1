@@ -18,4 +18,14 @@ class Coin extends Model
     {
         return $this->hasMany(Offer::class);
     }
+
+    public function platformAddress(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(PlatformAddress::class);
+    }
+
+    public function getFeeDepositAddress()
+    {
+        return $this->platformAddress()['pth'];
+    }
 }

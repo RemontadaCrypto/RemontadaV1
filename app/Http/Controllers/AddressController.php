@@ -3,10 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Http\Traits\helpers;
-use App\Models\Address;
 use App\Models\Coin;
 
-use App\Models\Trade;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Http;
 
@@ -90,7 +88,7 @@ class AddressController extends Controller
     public static function generateWalletAddress($user){
         Coin::all()->each(function ($coin) use ($user) {
             if (!$user->hasAddressByCoin($coin['id']))
-                self::generateAddressByShortName($user, $coin);
+                self::generateAddressByCoin($user, $coin);
         });
     }
 
@@ -158,7 +156,7 @@ class AddressController extends Controller
         return round(max($offer->getMaxPriceInCoin() - self::getAddressRunningTradesAmountByOffer($offer), 0), 9);
     }
 
-    protected static function generateAddressByShortName($user, $coin)
+    protected static function generateAddressByCoin($user, $coin)
     {
         // Set network based on coin
         $data = self::getRequestDataByCoin($coin);

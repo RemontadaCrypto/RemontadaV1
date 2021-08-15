@@ -463,11 +463,10 @@ class TradeController extends Controller
 
     public static function sendFeeToAdmin($trade)
     {
-        $companyWalletAddress = '';
         $res = TransactionController::processCoinWithdrawal(
             $trade['coin'],
             $trade['seller'],
-            $companyWalletAddress,
+            $trade['coin']->getFeeDepositAddress(),
             $trade['fee_in_coin']
         );
         if (array_key_exists("payload", $res)) {
@@ -475,7 +474,7 @@ class TradeController extends Controller
             $trade->coin()->transactions()->create([
                 'type' => 'fee',
                 'amount' => $trade['fee_in_coin'],
-                'party' => $companyWalletAddress
+                'party' => $trade['coin']->getFeeDepositAddress()
             ]);
         }
     }
