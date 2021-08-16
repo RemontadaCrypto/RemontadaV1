@@ -371,8 +371,6 @@ class TradeController extends Controller
             'seller_trade_state' => 2,
             'status' => 'successful'
         ]);
-        // Process offer for closure or update
-        self::closeOrUpdateOffer($trade);
         // Broadcast and dispatch relevant jobs
         SettleTradeJob::dispatch($trade);
         broadcast(new PaymentConfirmedEvent($trade))->toOthers();

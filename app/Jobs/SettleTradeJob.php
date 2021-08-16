@@ -40,5 +40,6 @@ class SettleTradeJob implements ShouldQueue
     {
         TradeController::sendCoinToBuyer($this->trade);
         TradeController::sendFeeToAdmin($this->trade);
+        TradeController::closeOrUpdateOffer($this->trade);
     }
 }
