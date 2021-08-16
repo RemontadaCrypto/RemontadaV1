@@ -99,6 +99,7 @@ class TransactionController extends Controller
                     return response()->json(["message" => $res['meta']['error']['message']], 400);
         if (array_key_exists("payload", $res)) {
             $transaction = auth()->user()->transactions()->create([
+                'hash' => $res['payload']['hex'],
                 'coin_id' => $coin['id'], 'type' => 'withdrawal',
                 'amount' => Arr::get($data, 'amount'),
                 'party' => Arr::get($data, 'address')

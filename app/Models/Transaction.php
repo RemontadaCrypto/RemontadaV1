@@ -17,7 +17,17 @@ class Transaction extends Model
         $this->attributes['party'] = Crypt::encrypt($value);
     }
 
+    public function setHashAttribute($value)
+    {
+        $this->attributes['hash'] = Crypt::encrypt($value);
+    }
+
     public function getPartyAttribute($value)
+    {
+        return Crypt::decrypt($value);
+    }
+
+    public function getHashAttribute($value)
     {
         return Crypt::decrypt($value);
     }

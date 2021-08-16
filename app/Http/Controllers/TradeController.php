@@ -450,11 +450,11 @@ class TradeController extends Controller
                 $trade['buyer']->getAddressByCoin($trade['coin']['id'])['pth'],
                 self::getFormattedCoinAmount($trade['amount_in_coin'] - $trade['fee_in_coin'])
             );
-            logger($res);
             if (array_key_exists("payload", $res)) {
                 $trade->update(['coin_released' => true]);
                 $coin = $trade->coin;
                 $coin->transactions()->create([
+                    'hash' => $res['payload']['hex'],
                     'type' => 'trade',
                     'amount' => self::getFormattedCoinAmount($trade['amount_in_coin'] - $trade['fee_in_coin']),
                     'party' => $trade['buyer']->getAddressByCoin($trade['coin']['id'])['pth']
@@ -473,11 +473,11 @@ class TradeController extends Controller
                 self::getFormattedCoinAmount($trade['fee_in_coin']),
                 AddressController::getAddressNonce($trade['coin'], $trade['seller']->getAddressByCoin($trade['coin']['id'])['pth'])
             );
-            logger($res);
             if (array_key_exists("payload", $res)) {
                 $trade->update(['fee_released' => true]);
                 $coin = $trade->coin;
                 $coin->transactions()->create([
+                    'hash' => $res['payload']['hex'],
                     'type' => 'fee',
                     'amount' => self::getFormattedCoinAmount($trade['fee_in_coin']),
                     'party' => $trade['coin']->getFeeDepositAddress()
