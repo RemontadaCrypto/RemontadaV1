@@ -68,13 +68,13 @@ class MailController extends Controller
 
     public static function sendBuyerTransactionMail($user, $payload)
     {
-        $line1 = 'Your have successfully bought <b>'.number_format($payload['trade']['amount_in_coin'], 9).' '.strtoupper($payload['coin']['short_name']).'</b> from <b>'.$payload['trade']['seller']['name'].'</b> at <b>₦'.number_format($payload['trade']['amount_in_ngn']).'</b> with rate of <b>₦'.$payload['trade']['offer']['rate'].'</b> per USD';
-        $user->notify(new CustomEmailNotification('Trade #'.$payload['trade']['ref'].' Successful', $line1));
+        $line1 = 'Your have successfully bought <b>'.number_format($payload['amount_in_coin'], 9).' '.strtoupper($payload['coin']['short_name']).'</b> from <b>'.$payload['seller']['name'].'</b> at <b>₦'.number_format($payload['amount_in_ngn']).'</b> with rate of <b>₦'.$payload['offer']['rate'].'</b> per USD';
+        $user->notify(new CustomEmailNotification('Trade #'.$payload['ref'].' Successful', $line1));
     }
 
     public static function sendSellerTransactionMail($user, $payload)
     {
-        $line1 = 'Your have successfully sold <b>'.number_format($payload['trade']['amount_in_coin'], 9).' '.strtoupper($payload['coin']['short_name']).'</b> to <b>'.$payload['trade']['buyer']['name'].'</b> at <b>₦'.number_format($payload['trade']['amount_in_ngn']).'</b> with rate of <b>₦'.$payload['trade']['offer']['rate'].'</b> per USD';
-        $user->notify(new CustomEmailNotification('Trade #'.$payload['trade']['ref'].' Successful', $line1));
+        $line1 = 'Your have successfully sold <b>'.number_format($payload['amount_in_coin'], 9).' '.strtoupper($payload['coin']['short_name']).'</b> to <b>'.$payload['buyer']['name'].'</b> at <b>₦'.number_format($payload['amount_in_ngn']).'</b> with rate of <b>₦'.$payload['offer']['rate'].'</b> per USD';
+        $user->notify(new CustomEmailNotification('Trade #'.$payload['ref'].' Successful', $line1));
     }
 }

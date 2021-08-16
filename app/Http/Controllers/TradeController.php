@@ -125,15 +125,6 @@ class TradeController extends Controller
      *   operationId="initiate trade",
      *   security={{ "apiAuth": {} }},
      *     @OA\Parameter(
-     *      name="coin",
-     *      in="query",
-     *      required=true,
-     *      description="e.g btc, eth, ltc",
-     *      @OA\Schema(
-     *          type="string"
-     *      )
-     *   ),
-     *     @OA\Parameter(
      *      name="offer_id",
      *      in="query",
      *      required=true,
@@ -169,18 +160,13 @@ class TradeController extends Controller
     public function initiate(): \Illuminate\Http\JsonResponse
     {
         // Set data and validate request
-        $data = Arr::only(request()->all(), ['offer_id', 'coin', 'amount']);
+        $data = Arr::only(request()->all(), ['offer_id', 'amount']);
         $validator = Validator::make($data, [
             'offer_id' => ['required'],
-            'coin' => ['required', 'string'],
             'amount' => ['required', 'gt:0']
         ]);
         if ($validator->fails())
             return response()->json($validator->getMessageBag(), 422);
-        $coin = Coin::query()->where('short_name', $data['coin'])->first();
-        // Check if coin is supported
-        if (!$coin)
-            return response()->json(['error' => 'Coin not found or not supported'], 400);
         $offer = Offer::find(Arr::get($data, 'offer_id'));
         // Check if offer exists
         if (!$offer)
@@ -202,21 +188,21 @@ class TradeController extends Controller
             $amountInUSD = Arr::get($data, 'amount');
             $amountInNGN = Arr::get($data, 'amount') * $offer['rate'];
         }
-        if (AddressController::getAddressTradeAbleBalance($offer) < round($amountInUSD / $coin['price'], 9))
+        if (AddressController::getAddressTradeAbleBalance($offer) < round($amountInUSD / $offer['coin']['price'], 9))
            return response()->json(["message" => 'Seller doesn\'t have sufficient wallet balance for trade'], 400);
         // Get trade fee
         $feeInUSD = $amountInUSD * (env('PLATFORM_TRADE_CHARGE_PERCENT') / 100);
         // Create trade
         $trade = $offer->trades()->create([
             'ref' => Trade::generateTradeRef(),
-            'coin_id' => $coin['id'],
+            'coin_id' => $offer['coin']['id'],
             'buyer_id' => auth()->user()['id'],
             'seller_id' => $offer->user['id'],
             'amount_in_ngn' => round($amountInNGN, 2),
-            'amount_in_coin' => round($amountInUSD / $coin['price'], 9),
+            'amount_in_coin' => round($amountInUSD / $offer['coin']['price'], 9),
             'amount_in_usd' => round($amountInUSD, 2),
             'fee_in_ngn' => $feeInUSD * $offer['rate'],
-            'fee_in_coin' => round($feeInUSD / $coin['price'], 9),
+            'fee_in_coin' => round($feeInUSD / $offer['coin']['price'], 9),
             'fee_in_usd' => $feeInUSD
         ]);
         // Broadcast and dispatch relevant jobs
@@ -325,7 +311,7 @@ class TradeController extends Controller
         if ($trade['status'] != 'pending')
             return response()->json(['error' => 'Trade already '.$trade['status']], 400);
         if ($trade['buyer_trade_state'] != 1 || $trade['seller_trade_state'] != 1)
-            return response()->json(['error' => 'Action not allowed, trade not yet accepted by seller'], 400);
+            return response()->json(['error' => 'Action not allowed, payment made request already sent'], 400);
         $trade->update([
             'buyer_trade_state' => 2
         ]);
@@ -391,6 +377,8 @@ class TradeController extends Controller
         SettleTradeJob::dispatch($trade);
         broadcast(new PaymentConfirmedEvent($trade))->toOthers();
         SendCustomEmailJob::dispatch($trade['buyer'], 'payment-confirmed', $trade);
+        SendCustomEmailJob::dispatch($trade['seller'], 'seller', $trade);
+        SendCustomEmailJob::dispatch($trade['buyer'], 'buyer', $trade);
         return response()->json([
             'message' => 'Payment confirmed successfully, trade successful',
             'data' => new TradeResource($trade)
@@ -462,16 +450,15 @@ class TradeController extends Controller
                 $trade['buyer']->getAddressByCoin($trade['coin']['id'])['pth'],
                 self::getFormattedCoinAmount($trade['amount_in_coin'] - $trade['fee_in_coin'])
             );
+            logger($res);
             if (array_key_exists("payload", $res)) {
                 $trade->update(['coin_released' => true]);
-                $transaction = $trade->coin()->transactions()->create([
+                $coin = $trade->coin;
+                $coin->transactions()->create([
                     'type' => 'trade',
                     'amount' => self::getFormattedCoinAmount($trade['amount_in_coin'] - $trade['fee_in_coin']),
-                    'party' => $trade['buyer']['address']['pth']
+                    'party' => $trade['buyer']->getAddressByCoin($trade['coin']['id'])['pth']
                 ]);
-                // Dispatch relevant job
-                SendCustomEmailJob::dispatch($transaction['seller'], 'seller', $transaction);
-                SendCustomEmailJob::dispatch($transaction['buyer'], 'buyer', $transaction);
             }
         }
     }
@@ -483,11 +470,14 @@ class TradeController extends Controller
                 $trade['coin'],
                 $trade['seller']->getAddressByCoin($trade['coin']['id']),
                 $trade['coin']->getFeeDepositAddress(),
-                self::getFormattedCoinAmount($trade['fee_in_coin'])
+                self::getFormattedCoinAmount($trade['fee_in_coin']),
+                AddressController::getAddressNonce($trade['coin'], $trade['seller']->getAddressByCoin($trade['coin']['id'])['pth'])
             );
+            logger($res);
             if (array_key_exists("payload", $res)) {
                 $trade->update(['fee_released' => true]);
-                $trade->coin()->transactions()->create([
+                $coin = $trade->coin;
+                $coin->transactions()->create([
                     'type' => 'fee',
                     'amount' => self::getFormattedCoinAmount($trade['fee_in_coin']),
                     'party' => $trade['coin']->getFeeDepositAddress()

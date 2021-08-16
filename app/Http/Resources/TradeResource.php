@@ -2,10 +2,12 @@
 
 namespace App\Http\Resources;
 
+use App\Http\Traits\helpers;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class TradeResource extends JsonResource
 {
+    use helpers;
     /**
      * Transform the resource into an array.
      *
@@ -21,10 +23,10 @@ class TradeResource extends JsonResource
             'offer' => new OfferResource($this['offer']),
             'buyer' => new UserResource($this['buyer']),
             'seller' => new UserResource($this['seller']),
-            'amount_in_coin' => $this['amount_in_coin'],
+            'amount_in_coin' => self::getFormattedCoinAmount($this['amount_in_coin']),
             'amount_in_usd' => round($this['amount_in_usd'], 2),
             'amount_in_ngn' => round($this['amount_in_ngn'], 2),
-            'fee_in_coin' => $this['fee_in_coin'],
+            'fee_in_coin' => self::getFormattedCoinAmount($this['fee_in_coin']),
             'fee_in_usd' => round($this['fee_in_usd'], 2),
             'fee_in_ngn' => round($this['fee_in_ngn'], 2),
             'buyer_trade_state' => $this['buyer_trade_state'],

@@ -185,6 +185,21 @@ class AddressController extends Controller
         ];
     }
 
+    public static function getAddressNonce($coin, $address)
+    {
+        if ($coin['short_name'] == 'ETH') {
+            // Set network based on coin
+            $data = self::getRequestDataByCoin($coin);
+
+            // Generate address
+            return Http::withHeaders([
+                'Content-type' => 'application/json',
+                'X-API-Key' => env('CRYPTO_API_KEY')
+            ])->get(env('CRYPTO_API_BASE_URL').'/'.$data['coin'].'/'.$data['network'].'/address/'.$address.'/nonce')->json()['payload']['nonce'] + 1;
+        }
+        return null;
+    }
+
     public static function getAllAddresses(): array
     {
         $addresses = [];

@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Validator;
 class TransactionController extends Controller
 {
     use helpers;
+
     /**
      * @OA\Post(
      ** path="/transactions/{coin}/withdraw",
@@ -66,8 +67,10 @@ class TransactionController extends Controller
      *      description="Unprocessed Entity"
      *   )
      *)
-     **/
-    public function withdraw(Coin $coin)
+     *
+     * @throws AddressInvalidException
+     */
+    public function withdraw(Coin $coin): \Illuminate\Http\JsonResponse
     {
         // Set credentials and validate request
         $data = Arr::only(request()->all(), ['address', 'amount']);
@@ -176,7 +179,7 @@ class TransactionController extends Controller
     /**
      * @throws AddressInvalidException
      */
-    public static function processCoinWithdrawal($coin, $sender, $to, $amount)
+    public static function processCoinWithdrawal($coin, $sender, $to, $amount, $nonce = null)
     {
         // Verify destination wallet is valid
         if (!self::addressIsValidByCoin($coin, $to)) {
@@ -185,7 +188,7 @@ class TransactionController extends Controller
         // Set network based on coin
         $sig = self::transactionSignature($sender['sig']);
         $fee = self::getRecommendedTransactionFee($coin, $sender, $to, $amount);
-        $data = self::getRequestDataByCoin($coin, $sender['pth'], $to, $sig, $amount, $fee);
+        $data = self::getRequestDataByCoin($coin, $sender['pth'], $to, $sig, $amount, $fee, $nonce);
         // Get transaction size
         return Http::withHeaders(self::getHeaders())
             ->post(env('CRYPTO_API_BASE_URL').'/'.$data['coin'].'/'.$data['network'].'/txs/'.$data['suffix'], $data['trxData'])
@@ -210,8 +213,8 @@ class TransactionController extends Controller
             ->json()['payload'];
         if ($coin['short_name'] == 'ETH') {
             return [
-                'gasLimit' => $trxFeeData['gasLimit'],
-                'gasPrice' => $feeData['standard']
+                'gasLimit' => (int)$trxFeeData['gasLimit'],
+                'gasPrice' => (float)$feeData['standard']
             ];
         } else {
             return self::getFormattedCoinAmount($trxFeeData['tx_size_bytes'] * $feeData['standard_fee_per_byte']);

@@ -963,15 +963,6 @@
                 "operationId": "initiate trade",
                 "parameters": [
                     {
-                        "name": "coin",
-                        "in": "query",
-                        "description": "e.g btc, eth, ltc",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
                         "name": "offer_id",
                         "in": "query",
                         "required": true,

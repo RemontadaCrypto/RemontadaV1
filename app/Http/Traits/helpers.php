@@ -16,7 +16,7 @@ trait helpers {
         return implode('',explode(',',number_format($number, 9)));
     }
 
-    public static function getRequestDataByCoin($coin, $from = null, $to = null, $sig = null, $amount = null, $fee = null): array
+    public static function getRequestDataByCoin($coin, $from = null, $to = null, $sig = null, $amount = null, $fee = null, $nonce = null): array
     {
         if ($coin['short_name'] == 'ETH') {
             $network = env('CRYPTO_NETWORK_2');
@@ -25,15 +25,16 @@ trait helpers {
             $trxData = [
                 "fromAddress" =>  $from,
                 "toAddress" => $to,
-                "gasPrice" => $fee['gasPrice'] ?? null,
+                "gasPrice" => $fee ? (int) ($fee['gasPrice'] * pow(10,9)) : null,
                 "gasLimit" => $fee['gasLimit'] ?? null,
-                "value" => $fee ? round($amount - ($fee['gasPrice'] * $fee['gasLimit'] * pow(10,-9)), 9) : $amount,
+                "value" => $fee ? round($amount - ($fee['gasPrice'] * $fee['gasLimit'] * pow(10,-9)), 9) : round($amount,9),
                 "privateKey" => $sig
             ];
+            if ($nonce) $trxData['nonce'] = $nonce;
             $trxSizeData = [
                 "fromAddress" =>  $trxData['fromAddress'],
                 "toAddress" => $trxData['toAddress'],
-                "value" => $trxData['value'],
+                "value" => round($trxData['value'], 6),
             ];
             $feeEndpointType = "gas";
         } else {
