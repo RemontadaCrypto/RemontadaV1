@@ -20,9 +20,9 @@ class CreateCoinsTable extends Migration
             $table->string('name');
             $table->string('slug');
             $table->string('short_name');
-            $table->double('market_cap', 30, 9);
-            $table->double('volume', 30, 9);
-            $table->double('price', 30, 9);
+            $table->double('market_cap', 30, 8);
+            $table->double('volume', 30, 8);
+            $table->double('price', 30, 8);
             $table->timestamps();
         });
 

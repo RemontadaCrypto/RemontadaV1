@@ -107,7 +107,7 @@ class AddressController extends Controller
         foreach ($activeOffers as $offer) {
             $lockedBalance += $offer->getMaxPriceInCoin();
         }
-        return round($lockedBalance, 9);
+        return round($lockedBalance, 8);
     }
 
     public static function getAddressLockedBalanceExcludingSingleOffer($offer): float
@@ -121,7 +121,7 @@ class AddressController extends Controller
         foreach ($activeOffers as $offer) {
             $lockedBalance += $offer->getMaxPriceInCoin();
         }
-        return round($lockedBalance, 9);
+        return round($lockedBalance, 8);
     }
 
     public static function getAddressRunningTradesAmountByOffer($offer): float
@@ -133,22 +133,22 @@ class AddressController extends Controller
         foreach ($activeTrades as $trade) {
             $runningTradesBalance += $trade['amount_in_coin'];
         }
-        return round($runningTradesBalance, 9);
+        return round($runningTradesBalance, 8);
     }
 
     public static function getAddressWithdrawAbleBalance($coin): float
     {
-        return round(max(self::getAddressBalance($coin) - self::getAddressLockedBalance($coin), 0), 9);
+        return round(max(self::getAddressBalance($coin) - self::getAddressLockedBalance($coin), 0), 8);
     }
 
     public static function getAddressWithdrawAbleBalanceExcludingSingleOffer($offer): float
     {
-        return round(max(self::getAddressBalance($offer['coin']) - self::getAddressLockedBalanceExcludingSingleOffer($offer), 0), 9);
+        return round(max(self::getAddressBalance($offer['coin']) - self::getAddressLockedBalanceExcludingSingleOffer($offer), 0), 8);
     }
 
     public static function getAddressTradeAbleBalance($offer): float
     {
-        return round(max($offer->getMaxPriceInCoin() - self::getAddressRunningTradesAmountByOffer($offer), 0), 9);
+        return round(max($offer->getMaxPriceInCoin() - self::getAddressRunningTradesAmountByOffer($offer), 0), 8);
     }
 
     protected static function generateAddressByCoin($user, $coin)

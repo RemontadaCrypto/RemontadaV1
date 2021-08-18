@@ -13,7 +13,7 @@ trait helpers {
 
     public static function getFormattedCoinAmount($number): string
     {
-        return implode('',explode(',',number_format($number, 9)));
+        return implode('',explode(',',number_format($number, 8)));
     }
 
     public static function getRequestDataByCoin($coin, $from = null, $to = null, $sig = null, $amount = null, $fee = null, $nonce = null): array
@@ -25,16 +25,16 @@ trait helpers {
             $trxData = [
                 "fromAddress" =>  $from,
                 "toAddress" => $to,
-                "gasPrice" => $fee ? (int) ($fee['gasPrice'] * pow(10,9)) : null,
+                "gasPrice" => $fee ? (int) ($fee['gasPrice'] * pow(10,8)) : null,
                 "gasLimit" => $fee['gasLimit'] ?? null,
-                "value" => $fee ? round($amount - ($fee['gasPrice'] * $fee['gasLimit'] * pow(10,-9)), 9) : round($amount,9),
+                "value" => $fee ? self::getFormattedCoinAmount($amount - ($fee['gasPrice'] * $fee['gasLimit'] * pow(10,-8)), 8) : self::getFormattedCoinAmount($amount,8),
                 "privateKey" => $sig
             ];
             if ($nonce) $trxData['nonce'] = $nonce;
             $trxSizeData = [
                 "fromAddress" =>  $trxData['fromAddress'],
                 "toAddress" => $trxData['toAddress'],
-                "value" => round($trxData['value'], 6),
+                "value" => self::getFormattedCoinAmount($trxData['value'], 6),
             ];
             $feeEndpointType = "gas";
         } else {
@@ -46,18 +46,18 @@ trait helpers {
                     "inputs" => [
                         [
                             "address" => $from,
-                            "value" => round(($amount - $fee), 9)
+                            "value" => self::getFormattedCoinAmount(($amount - $fee), 8)
                         ]
                     ],
                     "outputs" => [
                         [
                             "address" => $to,
-                            "value" => round(($amount - $fee), 9)
+                            "value" => self::getFormattedCoinAmount(($amount - $fee), 8)
                         ]
                     ],
                     "fee" => [
                         "address" => $from,
-                        "value" =>  round($fee, 9)
+                        "value" =>  self::getFormattedCoinAmount($fee, 8)
                     ]
                 ],
                 "wifs" => [

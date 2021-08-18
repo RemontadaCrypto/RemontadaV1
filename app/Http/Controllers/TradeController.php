@@ -188,7 +188,7 @@ class TradeController extends Controller
             $amountInUSD = Arr::get($data, 'amount');
             $amountInNGN = Arr::get($data, 'amount') * $offer['rate'];
         }
-        if (AddressController::getAddressTradeAbleBalance($offer) < round($amountInUSD / $offer['coin']['price'], 9))
+        if (AddressController::getAddressTradeAbleBalance($offer) < round($amountInUSD / $offer['coin']['price'], 8))
            return response()->json(["message" => 'Seller doesn\'t have sufficient wallet balance for trade'], 400);
         // Get trade fee
         $feeInUSD = $amountInUSD * (env('PLATFORM_TRADE_CHARGE_PERCENT') / 100);
@@ -199,10 +199,10 @@ class TradeController extends Controller
             'buyer_id' => auth()->user()['id'],
             'seller_id' => $offer->user['id'],
             'amount_in_ngn' => round($amountInNGN, 2),
-            'amount_in_coin' => round($amountInUSD / $offer['coin']['price'], 9),
+            'amount_in_coin' => round($amountInUSD / $offer['coin']['price'], 8),
             'amount_in_usd' => round($amountInUSD, 2),
             'fee_in_ngn' => $feeInUSD * $offer['rate'],
-            'fee_in_coin' => round($feeInUSD / $offer['coin']['price'], 9),
+            'fee_in_coin' => round($feeInUSD / $offer['coin']['price'], 8),
             'fee_in_usd' => $feeInUSD
         ]);
         // Broadcast and dispatch relevant jobs
@@ -358,6 +358,7 @@ class TradeController extends Controller
      **/
     public function confirmPayment(Trade $trade): \Illuminate\Http\JsonResponse
     {
+        self::closeOrUpdateOffer($trade);
         try {
             $this->authorize('seller', $trade);
         } catch (\Exception $e) {

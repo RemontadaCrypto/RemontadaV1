@@ -20,12 +20,12 @@ class CreateTradesTable extends Migration
             $table->foreignId('offer_id');
             $table->foreignId('buyer_id');
             $table->foreignId('seller_id');
-            $table->decimal('amount_in_coin', 20, 9);
-            $table->decimal('amount_in_usd', 20, 2);
-            $table->decimal('amount_in_ngn', 20, 2);
-            $table->decimal('fee_in_coin', 20, 9);
-            $table->decimal('fee_in_usd', 20, 9);
-            $table->decimal('fee_in_ngn', 20, 9);
+            $table->decimal('amount_in_coin', 20, 8);
+            $table->decimal('amount_in_usd', 20);
+            $table->decimal('amount_in_ngn', 20);
+            $table->decimal('fee_in_coin', 20, 8);
+            $table->decimal('fee_in_usd', 20, 8);
+            $table->decimal('fee_in_ngn', 20, 8);
             $table->integer('buyer_trade_state')->default(1);
             $table->integer('seller_trade_state')->default(0);
             $table->boolean('coin_released')->default(false);

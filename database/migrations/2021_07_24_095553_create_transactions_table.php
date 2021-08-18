@@ -19,7 +19,7 @@ class CreateTransactionsTable extends Migration
             $table->foreignId('user_id')->nullable();
             $table->foreignId('trade_id')->nullable();
             $table->enum('type', ['trade', 'withdrawal', 'fee']);
-            $table->decimal('amount', 20, 9);
+            $table->decimal('amount', 20, 8);
             $table->text('party');
             $table->timestamps();
         });

@@ -83,6 +83,7 @@ class TransactionController extends Controller
         }
 
         // Check if user has sufficient balance
+        Arr::set($data, 'amount', self::getFormattedCoinAmount(Arr::get($data, 'amount')));
         if (AddressController::getAddressWithdrawAbleBalance($coin) < Arr::get($data, 'amount')) {
             return response()->json(["message" => 'Insufficient wallet balance'], 400);
         }
