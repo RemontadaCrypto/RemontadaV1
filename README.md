@@ -1,6 +1,6 @@
 ## Installation 
 
-This guide assumes you have Laravel installed on your machine, Otherwise refer to Laravel official documentation for [Installation guide](https://laravel.com/docs/8.x/installation).
+This guide assumes you have [php](https://www.apachefriends.org/download.html), [mysql](https://www.apachefriends.org/download.html), [composer](https://getcomposer.org/download/), and [laravel](https://laravel.com/docs/8.x/installation) setup and installed on your machine.
 
 ## Laravel App Setup
 
