@@ -72,7 +72,7 @@ class AuthController extends Controller
         $validator = Validator::make($credentials, [
             'email' => ['required', 'unique:users,email', 'max:255'],
             'name' => ['required', 'unique:users,name', 'max:255'],
-            'password' => ['required', Password::min(8)->mixedCase()->uncompromised()->numbers()]
+            'password' => ['required', Password::min(8)->mixedCase()->numbers()]
         ]);
         if ($validator->fails()){
             return response()->json($validator->getMessageBag(), 422);
@@ -470,7 +470,7 @@ class AuthController extends Controller
         $validator = Validator::make($credentials, [
             'email' => ['required', 'email'],
             'token' => ['required', 'max:255'],
-            'password' => ['required', Password::min(8)->mixedCase()->uncompromised()->numbers()]
+            'password' => ['required', Password::min(8)->mixedCase()->numbers()]
         ]);
         if ($validator->fails()){
             return response()->json($validator->messages(), 422);
@@ -549,7 +549,7 @@ class AuthController extends Controller
         $credentials = Arr::only(request()->all(), ['old_password', 'new_password']);
         $validator = Validator::make($credentials, [
             'old_password' => ['required'],
-            'new_password' => ['required', Password::min(8)->mixedCase()->uncompromised()->numbers()]
+            'new_password' => ['required', Password::min(8)->mixedCase()->numbers()]
         ]);
         if ($validator->fails()){
             return response()->json($validator->messages(), 422);
