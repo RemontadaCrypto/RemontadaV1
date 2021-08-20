@@ -17,7 +17,7 @@ class TransactionController extends Controller
 
     /**
      * @OA\Post(
-     ** path="/transactions/{coin}/withdraw",
+     ** path="/v1/transactions/{coin}/withdraw",
      *   tags={"Transactions"},
      *   summary="withdraw coin to another address",
      *   operationId="withdraw coin to another address",
@@ -114,7 +114,7 @@ class TransactionController extends Controller
 
     /**
      * @OA\Get(
-     ** path="/transactions/{coin}",
+     ** path="/v1/transactions/{coin}",
      *   tags={"Transactions"},
      *   summary="get all user transactions by a supported coin",
      *   operationId="get all user transactions by a supported coin",

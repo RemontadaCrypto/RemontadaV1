@@ -14,7 +14,7 @@ class AddressController extends Controller
     use helpers;
     /**
      * @OA\Get(
-     ** path="/balance/all",
+     ** path="/v1/balance/all",
      *   tags={"Balance"},
      *   summary="get user balance for all supported coins",
      *   operationId="get user balance for all supported coins",
@@ -47,7 +47,7 @@ class AddressController extends Controller
 
     /**
      * @OA\Get(
-     ** path="/balance/{coin}",
+     ** path="/v1/balance/{coin}",
      *   tags={"Balance"},
      *   summary="get user balance by a specific coin short name supported coins",
      *   operationId="get user balance by a specific coin short name supported coins",

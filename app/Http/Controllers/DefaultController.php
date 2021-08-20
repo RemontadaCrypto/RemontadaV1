@@ -11,7 +11,7 @@ class DefaultController extends Controller
 {
     /**
      * @OA\Get(
-     ** path="/coins",
+     ** path="/v1/coins",
      *   tags={"Coins"},
      *   summary="All supported coin",
      *   operationId="all supported coin",
@@ -31,7 +31,7 @@ class DefaultController extends Controller
 
     /**
      * @OA\Get(
-     ** path="/coins/{coin}/show",
+     ** path="/v1/coins/{coin}/show",
      *   tags={"Coins"},
      *   summary="Show coin",
      *   operationId="show coin",

@@ -19,7 +19,7 @@
         }
     ],
     "paths": {
-        "/balance/all": {
+        "/v1/balance/all": {
             "get": {
                 "tags": [
                     "Balance"
@@ -44,7 +44,7 @@
                 ]
             }
         },
-        "/balance/{coin}": {
+        "/v1/balance/{coin}": {
             "get": {
                 "tags": [
                     "Balance"
@@ -80,7 +80,7 @@
                 ]
             }
         },
-        "/auth/register": {
+        "/v1/auth/register": {
             "post": {
                 "tags": [
                     "Auth"
@@ -129,7 +129,7 @@
                 }
             }
         },
-        "/auth/email/resend": {
+        "/v1/auth/email/resend": {
             "post": {
                 "tags": [
                     "Auth"
@@ -157,7 +157,7 @@
                 ]
             }
         },
-        "/auth/email/verify": {
+        "/v1/auth/email/verify": {
             "post": {
                 "tags": [
                     "Auth"
@@ -198,7 +198,7 @@
                 }
             }
         },
-        "/auth/login": {
+        "/v1/auth/login": {
             "post": {
                 "tags": [
                     "Auth"
@@ -239,7 +239,7 @@
                 }
             }
         },
-        "/auth/user": {
+        "/v1/auth/user": {
             "post": {
                 "tags": [
                     "Auth"
@@ -264,7 +264,7 @@
                 ]
             }
         },
-        "/auth/logout": {
+        "/v1/auth/logout": {
             "post": {
                 "tags": [
                     "Auth"
@@ -289,7 +289,7 @@
                 ]
             }
         },
-        "/auth/refresh": {
+        "/v1/auth/refresh": {
             "post": {
                 "tags": [
                     "Auth"
@@ -314,7 +314,7 @@
                 ]
             }
         },
-        "/auth/password/reset/send-link": {
+        "/v1/auth/password/reset/send-link": {
             "post": {
                 "tags": [
                     "Auth"
@@ -344,7 +344,7 @@
                 }
             }
         },
-        "/auth/password/reset/change": {
+        "/v1/auth/password/reset/change": {
             "post": {
                 "tags": [
                     "Auth"
@@ -393,7 +393,7 @@
                 }
             }
         },
-        "/auth/password/update": {
+        "/v1/auth/password/update": {
             "put": {
                 "tags": [
                     "Auth"
@@ -439,7 +439,7 @@
                 ]
             }
         },
-        "/coins": {
+        "/v1/coins": {
             "get": {
                 "tags": [
                     "Coins"
@@ -456,7 +456,7 @@
                 }
             }
         },
-        "/coins/{coin}/show": {
+        "/v1/coins/{coin}/show": {
             "get": {
                 "tags": [
                     "Coins"
@@ -484,7 +484,7 @@
                 }
             }
         },
-        "/offers": {
+        "/v1/offers": {
             "get": {
                 "tags": [
                     "Offer"
@@ -556,7 +556,7 @@
                 ]
             }
         },
-        "/offers/user": {
+        "/v1/offers/user": {
             "get": {
                 "tags": [
                     "Offer"
@@ -596,7 +596,7 @@
                 ]
             }
         },
-        "/offers/{offer}/show": {
+        "/v1/offers/{offer}/show": {
             "get": {
                 "tags": [
                     "Offer"
@@ -629,7 +629,7 @@
                 ]
             }
         },
-        "/offers/store": {
+        "/v1/offers/store": {
             "post": {
                 "tags": [
                     "Offer"
@@ -701,7 +701,7 @@
                 ]
             }
         },
-        "/offers/{offer}/update": {
+        "/v1/offers/{offer}/update": {
             "put": {
                 "tags": [
                     "Offer"
@@ -770,7 +770,7 @@
                 ]
             }
         },
-        "/offers/{offer}/close": {
+        "/v1/offers/{offer}/close": {
             "put": {
                 "tags": [
                     "Offer"
@@ -809,7 +809,7 @@
                 ]
             }
         },
-        "/offers/{offer}/delete": {
+        "/v1/offers/{offer}/delete": {
             "delete": {
                 "tags": [
                     "Offer"
@@ -848,7 +848,7 @@
                 ]
             }
         },
-        "/trades/user": {
+        "/v1/trades/user": {
             "get": {
                 "tags": [
                     "Trade"
@@ -897,7 +897,7 @@
                 ]
             }
         },
-        "/trades/{trade}/show": {
+        "/v1/trades/{trade}/show": {
             "get": {
                 "tags": [
                     "Trade"
@@ -930,7 +930,7 @@
                 ]
             }
         },
-        "/trades/initiate": {
+        "/v1/trades/initiate": {
             "post": {
                 "tags": [
                     "Trade"
@@ -976,7 +976,7 @@
                 ]
             }
         },
-        "/trades/{trade}/accept": {
+        "/v1/trades/{trade}/accept": {
             "post": {
                 "tags": [
                     "Trade"
@@ -1015,7 +1015,7 @@
                 ]
             }
         },
-        "/trades/{trade}/make-payment": {
+        "/v1/trades/{trade}/make-payment": {
             "post": {
                 "tags": [
                     "Trade"
@@ -1054,7 +1054,7 @@
                 ]
             }
         },
-        "/trades/{trade}/confirm-payment": {
+        "/v1/trades/{trade}/confirm-payment": {
             "post": {
                 "tags": [
                     "Trade"
@@ -1093,7 +1093,7 @@
                 ]
             }
         },
-        "/trades/{trade}/cancel": {
+        "/v1/trades/{trade}/cancel": {
             "post": {
                 "tags": [
                     "Trade"
@@ -1132,7 +1132,7 @@
                 ]
             }
         },
-        "/transactions/{coin}/withdraw": {
+        "/v1/transactions/{coin}/withdraw": {
             "post": {
                 "tags": [
                     "Transactions"
@@ -1189,7 +1189,7 @@
                 ]
             }
         },
-        "/transactions/{coin}": {
+        "/v1/transactions/{coin}": {
             "get": {
                 "tags": [
                     "Transactions"

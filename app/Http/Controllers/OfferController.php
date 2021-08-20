@@ -14,7 +14,7 @@ class OfferController extends Controller
     use helpers;
     /**
      * @OA\Get(
-     ** path="/offers",
+     ** path="/v1/offers",
      *   tags={"Offer"},
      *   summary="Get all offers",
      *   operationId="get all offers",
@@ -115,7 +115,7 @@ class OfferController extends Controller
 
     /**
      * @OA\Get(
-     ** path="/offers/user",
+     ** path="/v1/offers/user",
      *   tags={"Offer"},
      *   summary="Get authenticated user all offers",
      *   operationId="get authenticated user all offers",
@@ -167,7 +167,7 @@ class OfferController extends Controller
 
     /**
      * @OA\Get(
-     ** path="/offers/{offer}/show",
+     ** path="/v1/offers/{offer}/show",
      *   tags={"Offer"},
      *   summary="Show offers",
      *   operationId="show offers",
@@ -197,7 +197,7 @@ class OfferController extends Controller
 
     /**
      * @OA\Post(
-     ** path="/offers/store",
+     ** path="/v1/offers/store",
      *   tags={"Offer"},
      *   summary="Store offer",
      *   operationId="store offer",
@@ -296,7 +296,7 @@ class OfferController extends Controller
 
     /**
      * @OA\Put(
-     ** path="/offers/{offer}/update",
+     ** path="/v1/offers/{offer}/update",
      *   tags={"Offer"},
      *   summary="Update offer",
      *   operationId="update offer",
@@ -393,7 +393,7 @@ class OfferController extends Controller
 
     /**
      * @OA\Put(
-     ** path="/offers/{offer}/close",
+     ** path="/v1/offers/{offer}/close",
      *   tags={"Offer"},
      *   summary="Close offer",
      *   operationId="close offer",
@@ -439,7 +439,7 @@ class OfferController extends Controller
 
     /**
      * @OA\Delete(
-     ** path="/offers/{offer}/delete",
+     ** path="/v1/offers/{offer}/delete",
      *   tags={"Offer"},
      *   summary="Delete offer",
      *   operationId="delete offer",

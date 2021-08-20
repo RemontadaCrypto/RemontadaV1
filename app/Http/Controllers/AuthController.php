@@ -19,7 +19,7 @@ class AuthController extends Controller
 {
     /**
      * @OA\Post(
-     ** path="/auth/register",
+     ** path="/v1/auth/register",
      *   tags={"Auth"},
      *   summary="Register",
      *   operationId="register",
@@ -97,7 +97,7 @@ class AuthController extends Controller
 
     /**
      * @OA\Post(
-     ** path="/auth/email/resend",
+     ** path="/v1/auth/email/resend",
      *   tags={"Auth"},
      *   summary="Resend Email Verfication Link",
      *   operationId="resend email verfication link",
@@ -143,7 +143,7 @@ class AuthController extends Controller
 
     /**
      * @OA\Post(
-     ** path="/auth/email/verify",
+     ** path="/v1/auth/email/verify",
      *   tags={"Auth"},
      *   summary="Verify email address",
      *   operationId="verify email address",
@@ -218,7 +218,7 @@ class AuthController extends Controller
 
     /**
      * @OA\Post(
-     ** path="/auth/login",
+     ** path="/v1/auth/login",
      *   tags={"Auth"},
      *   summary="Login",
      *   operationId="login",
@@ -278,7 +278,7 @@ class AuthController extends Controller
 
     /**
      * @OA\Post(
-     ** path="/auth/user",
+     ** path="/v1/auth/user",
      *   tags={"Auth"},
      *   summary="Get Authenticated User Information",
      *   operationId="get authenticated user information",
@@ -304,7 +304,7 @@ class AuthController extends Controller
 
     /**
      * @OA\Post(
-     ** path="/auth/logout",
+     ** path="/v1/auth/logout",
      *   tags={"Auth"},
      *   summary="Logout",
      *   operationId="logout",
@@ -331,7 +331,7 @@ class AuthController extends Controller
 
     /**
      * @OA\Post(
-     ** path="/auth/refresh",
+     ** path="/v1/auth/refresh",
      *   tags={"Auth"},
      *   summary="Refresh Authenticated User Token",
      *   operationId="refresh authenticated user token",
@@ -357,7 +357,7 @@ class AuthController extends Controller
 
     /**
      * @OA\Post(
-     ** path="/auth/password/reset/send-link",
+     ** path="/v1/auth/password/reset/send-link",
      *   tags={"Auth"},
      *   summary="Send password reset link to email",
      *   operationId="send password reset link to email",
@@ -417,7 +417,7 @@ class AuthController extends Controller
 
     /**
      * @OA\Post(
-     ** path="/auth/password/reset/change",
+     ** path="/v1/auth/password/reset/change",
      *   tags={"Auth"},
      *   summary="Reset password",
      *   operationId="reset password",
@@ -504,7 +504,7 @@ class AuthController extends Controller
 
         /**
      * @OA\Put(
-     ** path="/auth/password/update",
+     ** path="/v1/auth/password/update",
      *   tags={"Auth"},
      *   summary="Update password",
      *   operationId="update password",
