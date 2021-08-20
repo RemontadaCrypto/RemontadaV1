@@ -22,7 +22,7 @@ class TradeController extends Controller
     use helpers;
     /**
      * @OA\Get(
-     ** path="/trades/user",
+     ** path="/v1/trades/user",
      *   tags={"Trade"},
      *   summary="Get authenticated user trades",
      *   operationId="get authenticated user trades",
@@ -89,7 +89,7 @@ class TradeController extends Controller
 
     /**
      * @OA\Get(
-     ** path="/trades/{trade}/show",
+     ** path="/v1/trades/{trade}/show",
      *   tags={"Trade"},
      *   summary="Show trade",
      *   operationId="show trade",
@@ -119,7 +119,7 @@ class TradeController extends Controller
 
     /**
      * @OA\Post(
-     ** path="/trades/initiate",
+     ** path="/v1/trades/initiate",
      *   tags={"Trade"},
      *   summary="Initiate trade",
      *   operationId="initiate trade",
@@ -188,7 +188,7 @@ class TradeController extends Controller
             $amountInUSD = Arr::get($data, 'amount');
             $amountInNGN = Arr::get($data, 'amount') * $offer['rate'];
         }
-        if (AddressController::getAddressTradeAbleBalance($offer) < round($amountInUSD / $offer['coin']['price'], 8))
+        if (AddressController::getAddressTradeAbleBalance($offer) < self::getFormattedCoinAmount($amountInUSD / $offer['coin']['price']))
            return response()->json(["message" => 'Seller doesn\'t have sufficient wallet balance for trade'], 400);
         // Get trade fee
         $feeInUSD = $amountInUSD * (env('PLATFORM_TRADE_CHARGE_PERCENT') / 100);
@@ -216,7 +216,7 @@ class TradeController extends Controller
 
     /**
      * @OA\Post(
-     ** path="/trades/{trade}/accept",
+     ** path="/v1/trades/{trade}/accept",
      *   tags={"Trade"},
      *   summary="Accept trade",
      *   operationId="accept trade",
@@ -271,7 +271,7 @@ class TradeController extends Controller
 
     /**
      * @OA\Post(
-     ** path="/trades/{trade}/make-payment",
+     ** path="/v1/trades/{trade}/make-payment",
      *   tags={"Trade"},
      *   summary="Make payment for trade",
      *   operationId="make payment for trade",
@@ -326,7 +326,7 @@ class TradeController extends Controller
 
     /**
      * @OA\Post(
-     ** path="/trades/{trade}/confirm-payment",
+     ** path="/v1/trades/{trade}/confirm-payment",
      *   tags={"Trade"},
      *   summary="Confirm payment for trade",
      *   operationId="confirm payment for trade",
@@ -386,7 +386,7 @@ class TradeController extends Controller
 
     /**
      * @OA\Post(
-     ** path="/trades/{trade}/cancel",
+     ** path="/v1/trades/{trade}/cancel",
      *   tags={"Trade"},
      *   summary="Cancel trade",
      *   operationId="cancel trade",

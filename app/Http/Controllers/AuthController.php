@@ -19,7 +19,7 @@ class AuthController extends Controller
 {
     /**
      * @OA\Post(
-     ** path="/auth/register",
+     ** path="/v1/auth/register",
      *   tags={"Auth"},
      *   summary="Register",
      *   operationId="register",
@@ -48,14 +48,6 @@ class AuthController extends Controller
      *          type="string"
      *      )
      *   ),
-     *     @OA\Parameter(
-     *      name="password_confirmation",
-     *      in="query",
-     *      required=true,
-     *      @OA\Schema(
-     *          type="string"
-     *      )
-     *   ),
      *   @OA\Response(
      *      response=200,
      *       description="Success",
@@ -76,11 +68,11 @@ class AuthController extends Controller
     public function register(): \Illuminate\Http\JsonResponse
     {
         // Set credentials and validate request
-        $credentials = Arr::only(request()->all(), ['email', 'name', 'password', 'password_confirmation']);
+        $credentials = Arr::only(request()->all(), ['email', 'name', 'password']);
         $validator = Validator::make($credentials, [
             'email' => ['required', 'unique:users,email', 'max:255'],
             'name' => ['required', 'unique:users,name', 'max:255'],
-            'password' => ['required', 'confirmed', Password::min(8)->mixedCase()->uncompromised()->numbers()]
+            'password' => ['required', Password::min(8)->mixedCase()->numbers()]
         ]);
         if ($validator->fails()){
             return response()->json($validator->getMessageBag(), 422);
@@ -88,7 +80,6 @@ class AuthController extends Controller
 
         // Hash password and store user
         $otp = sha1(Arr::get($credentials, 'email').time());
-        Arr::forget($credentials, 'password_confirmation');
         Arr::set($credentials, 'password', Hash::make($credentials['password']));
         Arr::set($credentials, 'verification_token', Hash::make($otp));
         Arr::set($credentials, 'verification_token_expiry', now()->addHour());
@@ -106,7 +97,7 @@ class AuthController extends Controller
 
     /**
      * @OA\Post(
-     ** path="/auth/email/resend",
+     ** path="/v1/auth/email/resend",
      *   tags={"Auth"},
      *   summary="Resend Email Verfication Link",
      *   operationId="resend email verfication link",
@@ -152,7 +143,7 @@ class AuthController extends Controller
 
     /**
      * @OA\Post(
-     ** path="/auth/email/verify",
+     ** path="/v1/auth/email/verify",
      *   tags={"Auth"},
      *   summary="Verify email address",
      *   operationId="verify email address",
@@ -227,7 +218,7 @@ class AuthController extends Controller
 
     /**
      * @OA\Post(
-     ** path="/auth/login",
+     ** path="/v1/auth/login",
      *   tags={"Auth"},
      *   summary="Login",
      *   operationId="login",
@@ -287,7 +278,7 @@ class AuthController extends Controller
 
     /**
      * @OA\Post(
-     ** path="/auth/user",
+     ** path="/v1/auth/user",
      *   tags={"Auth"},
      *   summary="Get Authenticated User Information",
      *   operationId="get authenticated user information",
@@ -313,7 +304,7 @@ class AuthController extends Controller
 
     /**
      * @OA\Post(
-     ** path="/auth/logout",
+     ** path="/v1/auth/logout",
      *   tags={"Auth"},
      *   summary="Logout",
      *   operationId="logout",
@@ -340,7 +331,7 @@ class AuthController extends Controller
 
     /**
      * @OA\Post(
-     ** path="/auth/refresh",
+     ** path="/v1/auth/refresh",
      *   tags={"Auth"},
      *   summary="Refresh Authenticated User Token",
      *   operationId="refresh authenticated user token",
@@ -366,7 +357,7 @@ class AuthController extends Controller
 
     /**
      * @OA\Post(
-     ** path="/auth/password/reset/send-link",
+     ** path="/v1/auth/password/reset/send-link",
      *   tags={"Auth"},
      *   summary="Send password reset link to email",
      *   operationId="send password reset link to email",
@@ -426,7 +417,7 @@ class AuthController extends Controller
 
     /**
      * @OA\Post(
-     ** path="/auth/password/reset/change",
+     ** path="/v1/auth/password/reset/change",
      *   tags={"Auth"},
      *   summary="Reset password",
      *   operationId="reset password",
@@ -455,14 +446,6 @@ class AuthController extends Controller
      *          type="string"
      *      )
      *   ),
-     *     @OA\Parameter(
-     *      name="password_confirmation",
-     *      in="query",
-     *      required=true,
-     *      @OA\Schema(
-     *          type="string"
-     *      )
-     *   ),
      *   @OA\Response(
      *      response=200,
      *       description="Success",
@@ -483,11 +466,11 @@ class AuthController extends Controller
     public function resetPassword(): \Illuminate\Http\JsonResponse
     {
         // Set credentials and validate request
-        $credentials = Arr::only(request()->all(), ['email', 'token', 'password', 'password_confirmation']);
+        $credentials = Arr::only(request()->all(), ['email', 'token', 'password']);
         $validator = Validator::make($credentials, [
             'email' => ['required', 'email'],
             'token' => ['required', 'max:255'],
-            'password' => ['required', 'confirmed', Password::min(8)->mixedCase()->uncompromised()->numbers()]
+            'password' => ['required', Password::min(8)->mixedCase()->numbers()]
         ]);
         if ($validator->fails()){
             return response()->json($validator->messages(), 422);
@@ -521,7 +504,7 @@ class AuthController extends Controller
 
         /**
      * @OA\Put(
-     ** path="/auth/password/update",
+     ** path="/v1/auth/password/update",
      *   tags={"Auth"},
      *   summary="Update password",
      *   operationId="update password",
@@ -541,14 +524,6 @@ class AuthController extends Controller
      *      required=true,
      *      @OA\Schema(
      *           type="string"
-     *      )
-     *   ),
-     *     @OA\Parameter(
-     *      name="new_password_confirmation",
-     *      in="query",
-     *      required=true,
-     *      @OA\Schema(
-     *          type="string"
      *      )
      *   ),
      *   @OA\Response(
@@ -571,10 +546,10 @@ class AuthController extends Controller
     public function updatePassword(): \Illuminate\Http\JsonResponse
     {
         // Set credentials and validate request
-        $credentials = Arr::only(request()->all(), ['old_password', 'new_password', 'new_password_confirmation']);
+        $credentials = Arr::only(request()->all(), ['old_password', 'new_password']);
         $validator = Validator::make($credentials, [
             'old_password' => ['required'],
-            'new_password' => ['required', 'confirmed', Password::min(8)->mixedCase()->uncompromised()->numbers()]
+            'new_password' => ['required', Password::min(8)->mixedCase()->numbers()]
         ]);
         if ($validator->fails()){
             return response()->json($validator->messages(), 422);
