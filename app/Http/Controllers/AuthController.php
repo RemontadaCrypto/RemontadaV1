@@ -48,14 +48,6 @@ class AuthController extends Controller
      *          type="string"
      *      )
      *   ),
-     *     @OA\Parameter(
-     *      name="password_confirmation",
-     *      in="query",
-     *      required=true,
-     *      @OA\Schema(
-     *          type="string"
-     *      )
-     *   ),
      *   @OA\Response(
      *      response=200,
      *       description="Success",
@@ -76,11 +68,11 @@ class AuthController extends Controller
     public function register(): \Illuminate\Http\JsonResponse
     {
         // Set credentials and validate request
-        $credentials = Arr::only(request()->all(), ['email', 'name', 'password', 'password_confirmation']);
+        $credentials = Arr::only(request()->all(), ['email', 'name', 'password']);
         $validator = Validator::make($credentials, [
             'email' => ['required', 'unique:users,email', 'max:255'],
             'name' => ['required', 'unique:users,name', 'max:255'],
-            'password' => ['required', 'confirmed', Password::min(8)->mixedCase()->uncompromised()->numbers()]
+            'password' => ['required', Password::min(8)->mixedCase()->uncompromised()->numbers()]
         ]);
         if ($validator->fails()){
             return response()->json($validator->getMessageBag(), 422);
@@ -88,7 +80,6 @@ class AuthController extends Controller
 
         // Hash password and store user
         $otp = sha1(Arr::get($credentials, 'email').time());
-        Arr::forget($credentials, 'password_confirmation');
         Arr::set($credentials, 'password', Hash::make($credentials['password']));
         Arr::set($credentials, 'verification_token', Hash::make($otp));
         Arr::set($credentials, 'verification_token_expiry', now()->addHour());
@@ -455,14 +446,6 @@ class AuthController extends Controller
      *          type="string"
      *      )
      *   ),
-     *     @OA\Parameter(
-     *      name="password_confirmation",
-     *      in="query",
-     *      required=true,
-     *      @OA\Schema(
-     *          type="string"
-     *      )
-     *   ),
      *   @OA\Response(
      *      response=200,
      *       description="Success",
@@ -483,11 +466,11 @@ class AuthController extends Controller
     public function resetPassword(): \Illuminate\Http\JsonResponse
     {
         // Set credentials and validate request
-        $credentials = Arr::only(request()->all(), ['email', 'token', 'password', 'password_confirmation']);
+        $credentials = Arr::only(request()->all(), ['email', 'token', 'password']);
         $validator = Validator::make($credentials, [
             'email' => ['required', 'email'],
             'token' => ['required', 'max:255'],
-            'password' => ['required', 'confirmed', Password::min(8)->mixedCase()->uncompromised()->numbers()]
+            'password' => ['required', Password::min(8)->mixedCase()->uncompromised()->numbers()]
         ]);
         if ($validator->fails()){
             return response()->json($validator->messages(), 422);
@@ -543,14 +526,6 @@ class AuthController extends Controller
      *           type="string"
      *      )
      *   ),
-     *     @OA\Parameter(
-     *      name="new_password_confirmation",
-     *      in="query",
-     *      required=true,
-     *      @OA\Schema(
-     *          type="string"
-     *      )
-     *   ),
      *   @OA\Response(
      *      response=200,
      *       description="Success",
@@ -571,10 +546,10 @@ class AuthController extends Controller
     public function updatePassword(): \Illuminate\Http\JsonResponse
     {
         // Set credentials and validate request
-        $credentials = Arr::only(request()->all(), ['old_password', 'new_password', 'new_password_confirmation']);
+        $credentials = Arr::only(request()->all(), ['old_password', 'new_password']);
         $validator = Validator::make($credentials, [
             'old_password' => ['required'],
-            'new_password' => ['required', 'confirmed', Password::min(8)->mixedCase()->uncompromised()->numbers()]
+            'new_password' => ['required', Password::min(8)->mixedCase()->uncompromised()->numbers()]
         ]);
         if ($validator->fails()){
             return response()->json($validator->messages(), 422);
