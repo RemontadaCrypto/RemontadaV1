@@ -188,7 +188,7 @@ class TradeController extends Controller
             $amountInUSD = Arr::get($data, 'amount');
             $amountInNGN = Arr::get($data, 'amount') * $offer['rate'];
         }
-        if (AddressController::getAddressTradeAbleBalance($offer) < round($amountInUSD / $offer['coin']['price'], 8))
+        if (AddressController::getAddressTradeAbleBalance($offer) < self::getFormattedCoinAmount($amountInUSD / $offer['coin']['price']))
            return response()->json(["message" => 'Seller doesn\'t have sufficient wallet balance for trade'], 400);
         // Get trade fee
         $feeInUSD = $amountInUSD * (env('PLATFORM_TRADE_CHARGE_PERCENT') / 100);

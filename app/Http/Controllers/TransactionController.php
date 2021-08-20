@@ -209,16 +209,16 @@ class TransactionController extends Controller
         $feeData = Http::withHeaders(self::getHeaders())
             ->get(env('CRYPTO_API_BASE_URL').'/'.$data['coin'].'/'.$data['network'].'/txs/fee')
             ->json()['payload'];
-        // Get transaction size or gas limit
-        $trxFeeData = Http::withHeaders(self::getHeaders())
-            ->post(env('CRYPTO_API_BASE_URL').'/'.$data['coin'].'/'.$data['network'].'/txs/'.$data['feeEndpointType'], $data['trxSizeData'])
-            ->json()['payload'];
         if ($coin['short_name'] == 'ETH') {
             return [
-                'gasLimit' => (int)$trxFeeData['gasLimit'],
+                'gasLimit' => (int)env('ETH_GAS_LIMIT'),
                 'gasPrice' => (float)$feeData['standard']
             ];
         } else {
+            // Get transaction size
+            $trxFeeData = Http::withHeaders(self::getHeaders())
+                ->post(env('CRYPTO_API_BASE_URL').'/'.$data['coin'].'/'.$data['network'].'/txs/'.$data['feeEndpointType'], $data['trxSizeData'])
+                ->json()['payload'];
             return self::getFormattedCoinAmount($trxFeeData['tx_size_bytes'] * $feeData['standard_fee_per_byte']);
         }
     }
