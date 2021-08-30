@@ -1,4 +1,4 @@
-## Installation 
+## Installation
 
 This guide assumes you have [php](https://www.apachefriends.org/download.html), [mysql](https://www.apachefriends.org/download.html), [composer](https://getcomposer.org/download/), and [laravel](https://laravel.com/docs/8.x/installation) setup and installed on your machine.
 
@@ -30,6 +30,7 @@ Copy content of ".env.example" to ".env". Then in file ".env" replace the follow
 - MAIL_USERNAME=
 - MAIL_PASSWORD=
 - MAIL_FROM_ADDRESS=
+- L5_SWAGGER_CONST_HOST=
 
 To this:
 
@@ -46,6 +47,7 @@ To this:
 - MAIL_USERNAME=mailtrap_username
 - MAIL_PASSWORD=mailtrap_passord
 - MAIL_FROM_ADDRESS=mail_from_address
+- L5_SWAGGER_CONST_HOST=base_url
 
 ```
 # generate app key
@@ -53,6 +55,7 @@ $ php artisan key:generate
 
 # generate jwt secret
 $ php artisan jwt:secret
+$ php artisan l5-swagger:generate
 
 # run database migration
 $ php artisan migrate
