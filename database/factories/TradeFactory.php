@@ -25,7 +25,7 @@ class TradeFactory extends Factory
     public function definition()
     {
         return [
-            'ref' => $this->faker->randomNumber(12),
+            'ref' => $this->faker->randomNumber(8),
             'coin_id' => Coin::all()->random()['id'],
             'offer_id' => Offer::all()->random()['id'],
             'buyer_id' => User::all()->random()['id'],
