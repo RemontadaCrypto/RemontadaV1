@@ -203,7 +203,10 @@ class TradeController extends Controller
             'amount_in_usd' => round($amountInUSD, 2),
             'fee_in_ngn' => $feeInUSD * $offer['rate'],
             'fee_in_coin' => round($feeInUSD / $offer['coin']['price'], 8),
-            'fee_in_usd' => $feeInUSD
+            'fee_in_usd' => $feeInUSD,
+            'buyer_trade_state' => 1,
+            'seller_trade_state' => 0,
+            'status' => "pending",
         ]);
         // Broadcast and dispatch relevant jobs
         broadcast(new TradeInitiatedEvent($trade))->toOthers();
